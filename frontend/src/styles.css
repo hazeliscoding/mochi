@@ -1,0 +1,15 @@
+/* Trellis design system */
+@import "./styles/trellis/fonts.css";
+@import "./styles/trellis/colors.css";
+@import "./styles/trellis/typography.css";
+@import "./styles/trellis/spacing.css";
+@import "./styles/trellis/shape.css";
+@import "./styles/trellis/elevation.css";
+@import "./styles/trellis/motion.css";
+@import "./styles/trellis/base.css";
+@import "./styles/trellis/controls.css";
+@import "./styles/trellis/structure.css";
+@import "./styles/trellis/feedback.css";
+
+/* Mochi app styles */
+@import "./styles/mochi.css";

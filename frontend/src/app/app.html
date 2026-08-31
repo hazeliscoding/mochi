@@ -1,0 +1,83 @@
+<div class="mo-shell">
+  <header class="mo-header">
+    <div style="display:flex;align-items:center;gap:8px;flex:none">
+      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+        <circle cx="10" cy="10" r="8.5" fill="var(--color-accent-subtle)" stroke="var(--color-accent)" stroke-width="1.5" />
+        <circle cx="10" cy="10" r="3.2" fill="var(--color-accent)" />
+      </svg>
+      <span class="mo-brand">Mochi</span>
+    </div>
+    <div class="mo-header__divider"></div>
+    <select class="tr-select" style="width:200px" aria-label="Current website" (change)="onSelect('site', $event)">
+      @for (s of siteOptions; track s) {
+        <option [value]="s" [selected]="s === data.site()">{{ s }}</option>
+      }
+    </select>
+    <div class="mo-spacer"></div>
+    <select class="tr-select mo-wide-only" style="width:140px" aria-label="Date range" (change)="onSelect('range', $event)">
+      @for (r of data.rangeOptions; track r) {
+        <option [value]="r" [selected]="r === data.range()">{{ r }}</option>
+      }
+    </select>
+    <select class="tr-select mo-wide-only" style="width:170px" aria-label="Comparison" (change)="onSelect('compare', $event)">
+      @for (c of data.compareOptions; track c) {
+        <option [value]="c" [selected]="c === data.compare()">{{ c }}</option>
+      }
+    </select>
+    <button
+      type="button"
+      class="tr-btn tr-btn--ghost tr-btn--icon"
+      [attr.aria-label]="theme.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+      [title]="theme.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+      (click)="theme.toggle()"
+    >
+      <mo-icon [name]="theme.theme() === 'dark' ? 'sun' : 'moon'" />
+    </button>
+    <span class="tr-avatar" style="width:28px;height:28px" title="Hazel Okafor" aria-label="Hazel Okafor">HO</span>
+  </header>
+
+  <div class="mo-narrow-nav mo-narrow-only">
+    <div class="tr-tabs" role="tablist" style="border-bottom:none">
+      @for (item of allNav; track item.path) {
+        <a
+          class="tr-tab"
+          [routerLink]="item.path"
+          routerLinkActive
+          #rla="routerLinkActive"
+          [attr.aria-selected]="rla.isActive"
+          style="text-decoration:none;white-space:nowrap"
+        >{{ item.label }}</a>
+      }
+    </div>
+  </div>
+
+  <div class="mo-body">
+    <div class="mo-sidebar-wrap mo-wide-only">
+      <nav class="tr-sidebar mo-sidebar">
+        <div class="tr-sidebar__section">Analytics</div>
+        @for (item of analyticsNav; track item.path) {
+          <a class="tr-navitem" [routerLink]="item.path" routerLinkActive ariaCurrentWhenActive="page">
+            <mo-icon [name]="item.icon" />
+            <span>{{ item.label }}</span>
+          </a>
+        }
+        <div class="tr-sidebar__section">Manage</div>
+        @for (item of manageNav; track item.path) {
+          <a class="tr-navitem" [routerLink]="item.path" routerLinkActive ariaCurrentWhenActive="page">
+            <mo-icon [name]="item.icon" />
+            <span>{{ item.label }}</span>
+          </a>
+        }
+      </nav>
+      <div class="mo-privacy-note">
+        <span style="color:var(--color-accent);font-weight:600">No cookies. No fingerprinting.</span><br />Mochi counts visits, not people.
+      </div>
+    </div>
+
+    <main #main class="mo-main">
+      <div class="mo-content">
+        <router-outlet />
+      </div>
+    </main>
+  </div>
+</div>

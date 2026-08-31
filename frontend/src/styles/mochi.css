@@ -1,0 +1,49 @@
+/* Mochi app-level helpers — patterns repeated across the design's screens. */
+
+.mo-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md)}
+.mo-card-label{font:600 11px var(--font-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary)}
+.mo-page-title{font:600 26px/1.15 var(--font-display);margin:0;letter-spacing:-.01em}
+.mo-num{font-variant-numeric:tabular-nums}
+.mo-mono{font-family:var(--font-mono)}
+.mo-muted{color:var(--color-text-secondary)}
+
+/* Page header row: title + actions */
+.mo-page-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:4px 0 18px}
+.mo-page-head .mo-spacer,.mo-spacer{flex:1}
+
+/* Metric strip: joined tiles inside one card */
+.mo-metric-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr))}
+.mo-metric-strip>div{padding:14px 18px;border-left:1px solid var(--color-border-subtle)}
+
+/* Percentage bar rows (top pages / sources / countries / browsers) */
+.mo-bar-row{position:relative;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 10px;border-radius:3px;overflow:hidden}
+.mo-bar-row__fill{position:absolute;top:0;bottom:0;left:0;background:var(--color-accent-subtle)}
+.mo-bar-row__name{position:relative}
+.mo-bar-row__vals{position:relative;display:flex;gap:14px;font-variant-numeric:tabular-nums}
+.mo-bar-row__pct{color:var(--color-text-secondary);font-size:12px}
+.mo-bar-row__val{min-width:44px;text-align:right}
+
+/* Simple name/value rows */
+.mo-kv-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:5px 10px;font-size:13px}
+.mo-kv-row>span:last-child{font-variant-numeric:tabular-nums;color:var(--color-text-secondary)}
+
+/* Device split bar */
+.mo-split{display:flex;height:8px;border-radius:4px;overflow:hidden;gap:2px}
+.mo-split--lg{height:10px;border-radius:5px}
+.mo-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+
+/* Settings section heading */
+.mo-section-title{font:600 16px var(--font-display);padding-bottom:8px;border-bottom:1px solid var(--color-border);margin-bottom:16px}
+
+/* Clickable list-row button (events table rows, website rows) */
+.mo-row-btn{background:none;border:none;border-bottom:1px solid var(--color-border-subtle);cursor:pointer;font:inherit;color:inherit;text-align:left;width:100%;transition:background var(--motion-state)}
+.mo-row-btn:hover{background:var(--color-surface-subtle)}
+
+/* Grid-table (events / goals) */
+.mo-grid-table__head{display:grid;gap:12px;padding:10px 16px;border-bottom:1px solid var(--color-border);font:600 11px var(--font-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary)}
+.mo-grid-table__row{display:grid;gap:12px;align-items:center;padding:10px 16px}
+
+/* Animations from the design */
+@keyframes mo-pulse{0%{box-shadow:0 0 0 0 rgba(31,109,102,.35)}70%{box-shadow:0 0 0 9px rgba(31,109,102,0)}100%{box-shadow:0 0 0 0 rgba(31,109,102,0)}}
+@keyframes mo-pop{0%{transform:scale(.5);opacity:0}65%{transform:scale(1.07)}100%{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:1ms !important;transition-duration:1ms !important}}

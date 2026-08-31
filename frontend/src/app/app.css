@@ -1,0 +1,14 @@
+.mo-shell{height:100vh;display:flex;flex-direction:column;background:var(--color-surface-canvas);color:var(--color-text-primary);font-family:var(--font-ui);font-size:14px}
+.mo-header{height:52px;flex:none;display:flex;align-items:center;gap:14px;padding:0 16px;background:var(--color-surface);border-bottom:1px solid var(--color-border)}
+.mo-brand{font:600 17px var(--font-display);letter-spacing:-.01em}
+.mo-header__divider{width:1px;height:22px;background:var(--color-border);flex:none}
+.mo-header .tr-select{flex:none}
+.mo-narrow-nav{flex:none;background:var(--color-surface);border-bottom:1px solid var(--color-border);overflow-x:auto;padding:0 8px}
+.mo-body{display:flex;flex:1;min-height:0}
+.mo-sidebar-wrap{width:232px;flex:none;overflow-y:auto;background:var(--color-surface);border-right:1px solid var(--color-border);padding-top:8px}
+.mo-sidebar{background:var(--color-surface);border-right:none;width:100%}
+.mo-privacy-note{margin:20px 14px;padding:10px 12px;border:1px solid var(--color-border-subtle);border-radius:var(--radius-md);font-size:12px;line-height:1.5;color:var(--color-text-secondary)}
+.mo-main{flex:1;min-width:0;overflow-y:auto}
+.mo-content{max-width:1160px;margin:0 auto;padding:24px 28px 72px}
+@media (max-width:899px){.mo-wide-only{display:none !important}}
+@media (min-width:900px){.mo-narrow-only{display:none !important}}

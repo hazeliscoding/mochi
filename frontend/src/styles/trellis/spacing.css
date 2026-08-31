@@ -1,0 +1,18 @@
+:root{
+--space-1:2px;--space-2:4px;--space-3:6px;--space-4:8px;--space-5:12px;--space-6:16px;--space-7:20px;--space-8:24px;--space-9:32px;--space-10:40px;--space-11:48px;--space-12:64px;
+/* density-aware component tokens (comfortable default) */
+--control-height:36px;--control-height-sm:28px;--control-height-lg:44px;
+--control-pad-x:14px;
+--space-component-gap:var(--space-6);
+--space-section-gap:var(--space-9);
+--table-row-pad:10px;
+--list-item-pad:10px;
+}
+[data-density="compact"]{
+--control-height:28px;--control-height-sm:24px;--control-height-lg:36px;
+--control-pad-x:10px;
+--space-component-gap:var(--space-5);
+--space-section-gap:var(--space-8);
+--table-row-pad:5px;
+--list-item-pad:6px;
+}

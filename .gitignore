@@ -1,0 +1,23 @@
+# Dependencies / build output (frontend has its own .gitignore too)
+node_modules/
+dist/
+
+# AI tooling
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+.cursor/
+.cursorrules
+.aider*
+.github/copilot-instructions.md
+*.mcp.json
+
+# Editor / OS
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local env & logs
+.env
+.env.*
+*.log

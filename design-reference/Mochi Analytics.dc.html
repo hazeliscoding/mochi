@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/trellis-design-system-c56627d6-27ef-45d6-9c96-e1b0a3f5bb8d/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/trellis-design-system-c56627d6-27ef-45d6-9c96-e1b0a3f5bb8d/tokens/colors.css">
+<link rel="stylesheet" href="_ds/trellis-design-system-c56627d6-27ef-45d6-9c96-e1b0a3f5bb8d/tokens/typography.css">
+<link rel="stylesheet" href="_ds/trellis-design-system-c56627d6-27ef-45d6-9c96-e1b0a3f5bb8d/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/trellis-design-system-c56627d6-27ef-45d6-9c96-e1b0a3f5bb8d/tokens/shape.css">
+<link rel="stylesheet" href="_ds/trellis-design-system-c56627d6-27ef-45d6-9c96-e1b0a3f5bb8d/tokens/elevation.css">
+<link rel="stylesheet" href="_ds/trellis-design-system-c56627d6-27ef-45d6-9c96-e1b0a3f5bb8d/tokens/motion.css">
+<link rel="stylesheet" href="_ds/trellis-design-system-c56627d6-27ef-45d6-9c96-e1b0a3f5bb8d/tokens/base.css">
+<link rel="stylesheet" href="_ds/trellis-design-system-c56627d6-27ef-45d6-9c96-e1b0a3f5bb8d/css/controls.css">
+<link rel="stylesheet" href="_ds/trellis-design-system-c56627d6-27ef-45d6-9c96-e1b0a3f5bb8d/css/structure.css">
+<link rel="stylesheet" href="_ds/trellis-design-system-c56627d6-27ef-45d6-9c96-e1b0a3f5bb8d/css/feedback.css">
+<link rel="stylesheet" href="_ds/trellis-design-system-c56627d6-27ef-45d6-9c96-e1b0a3f5bb8d/styles.css">
+<script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js"></script>
+<script src="_ds/trellis-design-system-c56627d6-27ef-45d6-9c96-e1b0a3f5bb8d/_ds_bundle.js"></script>
+<style>
+body{margin:0;background:#F7F8F9}
+a{color:#1F6D66}a:hover{color:#17554F}
+@keyframes mo-pulse{0%{box-shadow:0 0 0 0 rgba(31,109,102,.35)}70%{box-shadow:0 0 0 9px rgba(31,109,102,0)}100%{box-shadow:0 0 0 0 rgba(31,109,102,0)}}
+@keyframes mo-pop{0%{transform:scale(.5);opacity:0}65%{transform:scale(1.07)}100%{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:1ms !important;transition-duration:1ms !important}}
+</style>
+</helmet>
+<div data-theme="{{ theme }}" data-density="{{ density }}" style="min-height:100vh;display:flex;flex-direction:column;background:var(--color-surface-canvas);color:var(--color-text-primary);font-family:'Hanken Grotesk',system-ui,sans-serif;font-size:14px">
+  <header style="height:52px;flex:none;display:flex;align-items:center;gap:14px;padding:0 16px;background:var(--color-surface);border-bottom:1px solid var(--color-border)">
+    <div style="display:flex;align-items:center;gap:8px;flex:none">
+      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="var(--color-accent-subtle)" stroke="var(--color-accent)" stroke-width="1.5"></circle><circle cx="10" cy="10" r="3.2" fill="var(--color-accent)"></circle></svg>
+      <span style="font:600 17px 'Bricolage Grotesque',sans-serif;letter-spacing:-.01em">Mochi</span>
+    </div>
+    <div style="width:1px;height:22px;background:var(--color-border);flex:none"></div>
+    <x-import component-from-global-scope="TrellisDesignSystem_c56627.Select" options="{{ siteOptions }}" value="{{ site }}" on-change="{{ setSite }}" aria-label="Current website" hint-size="200px,36px"></x-import>
+    <div style="flex:1"></div>
+    <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}">
+      <x-import component-from-global-scope="TrellisDesignSystem_c56627.Select" options="{{ rangeOptions }}" value="{{ range }}" on-change="{{ setRange }}" aria-label="Date range" hint-size="140px,36px"></x-import>
+      <x-import component-from-global-scope="TrellisDesignSystem_c56627.Select" options="{{ compareOptions }}" value="{{ compare }}" on-change="{{ setCompare }}" aria-label="Comparison" hint-size="170px,36px"></x-import>
+    </sc-if>
+    <x-import component-from-global-scope="TrellisDesignSystem_c56627.IconButton" variant="ghost" aria-label="{{ themeLabel }}" on-click="{{ toggleTheme }}" hint-size="36px,36px">{{ themeIcon }}</x-import>
+    <x-import component-from-global-scope="TrellisDesignSystem_c56627.Avatar" name="Hazel Okafor" hint-size="28px,28px"></x-import>
+  </header>
+  <sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:none;background:var(--color-surface);border-bottom:1px solid var(--color-border);overflow-x:auto;padding:0 8px">
+      <x-import component-from-global-scope="TrellisDesignSystem_c56627.Tabs" tabs="{{ navTabs }}" value="{{ nav }}" on-change="{{ goNav }}" hint-size="100%,40px"></x-import>
+    </div>
+  </sc-if>
+  <div style="display:flex;flex:1;min-height:0">
+    <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}">
+      <div style="width:232px;flex:none;overflow-y:auto;background:var(--color-surface);border-right:1px solid var(--color-border);padding-top:8px">
+        <x-import component-from-global-scope="TrellisDesignSystem_c56627.Sidebar" sections="{{ navSections }}" current="{{ nav }}" on-select="{{ goNav }}" hint-size="232px,600px"></x-import>
+        <div style="margin:20px 14px;padding:10px 12px;border:1px solid var(--color-border-subtle);border-radius:6px;font-size:12px;line-height:1.5;color:var(--color-text-secondary)">
+          <span style="color:var(--color-accent);font-weight:600">No cookies. No fingerprinting.</span><br>Mochi counts visits, not people.
+        </div>
+      </div>
+    </sc-if>
+    <main ref="{{ mainRef }}" style="flex:1;min-width:0;overflow-y:auto">
+      <div style="max-width:1160px;margin:0 auto;padding:24px 28px 72px">
+
+        <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+        <section data-screen-label="Overview">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:4px 0 20px">
+            <div>
+              <h1 style="font:600 26px/1.15 'Bricolage Grotesque',sans-serif;margin:0;letter-spacing:-.01em">{{ site }}</h1>
+              <div style="font-size:13px;color:var(--color-text-secondary);margin-top:5px">Aug 1 – Aug 30, 2026 · {{ compareLabel }}</div>
+            </div>
+            <x-import component-from-global-scope="TrellisDesignSystem_c56627.StatusIndicator" tone="success" hint-size="120px,20px">Receiving data</x-import>
+          </div>
+
+          <sc-if value="{{ ovLoading }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;margin-bottom:16px">
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.Skeleton" width="100%" height="64" hint-size="100%,64px"></x-import>
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.Skeleton" width="100%" height="64" hint-size="100%,64px"></x-import>
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.Skeleton" width="100%" height="64" hint-size="100%,64px"></x-import>
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.Skeleton" width="100%" height="64" hint-size="100%,64px"></x-import>
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.Skeleton" width="100%" height="64" hint-size="100%,64px"></x-import>
+            </div>
+            <x-import component-from-global-scope="TrellisDesignSystem_c56627.Skeleton" width="100%" height="280" hint-size="100%,280px"></x-import>
+            <div style="margin-top:14px;font-size:13px;color:var(--color-text-secondary)">Steaming your numbers…</div>
+          </sc-if>
+
+          <sc-if value="{{ ovFirstRun }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid var(--color-border);border-radius:6px;background:var(--color-surface);padding:56px 24px">
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.EmptyState" icon="{{ towerIcon }}" title="We're still waiting to hear from your site." description="Install the snippet and your first aggregates will appear within a minute of the next visit. Nothing about individual visitors is ever recorded." action="{{ installBtn }}" hint-size="100%,180px"></x-import>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ ovLive }}" hint-placeholder-val="{{ true }}">
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));margin-bottom:16px">
+            <sc-for list="{{ metrics }}" as="m" hint-placeholder-count="5">
+              <div title="{{ m.tip }}" style="padding:14px 18px;border-left:1px solid var(--color-border-subtle)">
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.Metric" label="{{ m.label }}" value="{{ m.value }}" delta="{{ m.delta }}" direction="{{ m.dir }}" hint-size="140px,56px"></x-import>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:16px 18px 10px;margin-bottom:16px">
+            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px">
+              <span style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary)">Trend</span>
+              <div style="flex:1"></div>
+              <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)"><span style="width:16px;height:0;border-top:2px solid var(--color-accent)"></span>This period</span>
+              <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)"><span style="width:16px;height:0;border-top:2px dashed var(--color-text-disabled)"></span>Previous</span>
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.ButtonGroup" items="{{ metricItems }}" value="{{ metric }}" on-change="{{ setMetric }}" hint-size="240px,32px"></x-import>
+            </div>
+            <svg viewBox="0 0 760 230" style="width:100%;height:auto;display:block" role="img" aria-label="{{ chartAria }}">
+              <line x1="8" y1="8" x2="752" y2="8" stroke="var(--color-border-subtle)"></line>
+              <line x1="8" y1="111" x2="752" y2="111" stroke="var(--color-border-subtle)"></line>
+              <line x1="8" y1="214" x2="752" y2="214" stroke="var(--color-border)"></line>
+              <path d="{{ ovArea }}" fill="var(--color-accent-subtle)" opacity="0.65"></path>
+              <path d="{{ ovPrev }}" fill="none" stroke="var(--color-text-disabled)" stroke-width="1.5" stroke-dasharray="4 4"></path>
+              <path d="{{ ovLine }}" fill="none" stroke="var(--color-accent)" stroke-width="2" stroke-linejoin="round"></path>
+              <line x1="{{ spikeX }}" y1="20" x2="{{ spikeX }}" y2="{{ spikeY }}" stroke="var(--color-border)" stroke-dasharray="2 3"></line>
+              <circle cx="{{ spikeX }}" cy="{{ spikeY }}" r="4" fill="var(--color-surface)" stroke="var(--color-accent)" stroke-width="2"><title>Aug 19 — Front page of Hacker News</title></circle>
+              <text x="{{ spikeX }}" y="14" text-anchor="middle" style="font:11px 'Hanken Grotesk';fill:var(--color-text-secondary)">Hacker News front page</text>
+              <text x="10" y="22" style="font:11px 'Hanken Grotesk';fill:var(--color-text-disabled)">{{ yMax }}</text>
+              <text x="10" y="125" style="font:11px 'Hanken Grotesk';fill:var(--color-text-disabled)">{{ yMid }}</text>
+            </svg>
+            <div style="display:flex;justify-content:space-between;padding:6px 4px 4px;font-size:11px;color:var(--color-text-disabled)">
+              <span>Aug 1</span><span>Aug 8</span><span>Aug 15</span><span>Aug 22</span><span>Aug 30</span>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px">
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;display:flex;flex-direction:column">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px">
+                <span style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary)">Top pages</span>
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.Button" variant="ghost" size="sm" on-click="{{ goPages }}" hint-size="80px,28px">All pages</x-import>
+              </div>
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.Table" row-key="id" columns="{{ miniPageCols }}" rows="{{ miniPageRows }}" on-row-click="{{ openPageFromMini }}" hint-size="100%,240px"></x-import>
+            </div>
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px">
+                <span style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary)">Traffic sources</span>
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.Button" variant="ghost" size="sm" on-click="{{ goSources }}" hint-size="80px,28px">Sources</x-import>
+              </div>
+              <div style="padding:2px 8px 8px">
+                <sc-for list="{{ channelRows }}" as="r" hint-placeholder-count="4">
+                  <div style="position:relative;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 10px;border-radius:3px;overflow:hidden">
+                    <div style="position:absolute;top:0;bottom:0;left:0;background:var(--color-accent-subtle);width:{{ r.pct }}%"></div>
+                    <span style="position:relative">{{ r.name }}</span>
+                    <span style="position:relative;display:flex;gap:14px;font-variant-numeric:tabular-nums"><span style="color:var(--color-text-secondary);font-size:12px">{{ r.pct }}%</span><span style="min-width:44px;text-align:right">{{ r.val }}</span></span>
+                  </div>
+                </sc-for>
+                <div style="height:1px;background:var(--color-border-subtle);margin:8px 2px"></div>
+                <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);padding:4px 10px 6px">Top sources</div>
+                <sc-for list="{{ topSourceRows }}" as="r" hint-placeholder-count="5">
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:5px 10px;font-size:13px">
+                    <span>{{ r.name }}</span><span style="font-variant-numeric:tabular-nums;color:var(--color-text-secondary)">{{ r.val }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px">
+                <span style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary)">Visitor geography</span>
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.Button" variant="ghost" size="sm" on-click="{{ goGeo }}" hint-size="80px,28px">Geography</x-import>
+              </div>
+              <div style="padding:2px 8px 8px">
+                <sc-for list="{{ countryRows }}" as="r" hint-placeholder-count="7">
+                  <div style="position:relative;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 10px;border-radius:3px;overflow:hidden">
+                    <div style="position:absolute;top:0;bottom:0;left:0;background:var(--color-accent-subtle);width:{{ r.pct }}%"></div>
+                    <span style="position:relative">{{ r.name }}</span>
+                    <span style="position:relative;display:flex;gap:14px;font-variant-numeric:tabular-nums"><span style="color:var(--color-text-secondary);font-size:12px">{{ r.pct }}%</span><span style="min-width:44px;text-align:right">{{ r.val }}</span></span>
+                  </div>
+                </sc-for>
+                <div style="padding:8px 10px 4px;font-size:12px;color:var(--color-text-secondary)">Locations are generalized to country level.</div>
+              </div>
+            </div>
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px">
+              <div style="padding:14px 16px 10px;font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary)">Devices</div>
+              <div style="padding:0 16px 14px">
+                <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;gap:2px" aria-hidden="true">
+                  <div style="width:58%;background:var(--color-accent)"></div>
+                  <div style="width:36%;background:var(--teal-300)"></div>
+                  <div style="width:6%;background:var(--color-border)"></div>
+                </div>
+                <div style="display:flex;gap:18px;margin-top:10px;font-size:13px;flex-wrap:wrap">
+                  <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--color-accent);margin-right:6px"></span>Desktop 58%</span>
+                  <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--teal-300);margin-right:6px"></span>Mobile 36%</span>
+                  <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--color-border);margin-right:6px"></span>Tablet 6%</span>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 20px;margin-top:16px">
+                  <div>
+                    <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);padding-bottom:6px">Browsers</div>
+                    <sc-for list="{{ browserTop }}" as="r" hint-placeholder-count="3">
+                      <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px"><span>{{ r.name }}</span><span style="color:var(--color-text-secondary);font-variant-numeric:tabular-nums">{{ r.pct }}%</span></div>
+                    </sc-for>
+                  </div>
+                  <div>
+                    <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);padding-bottom:6px">Operating systems</div>
+                    <sc-for list="{{ osTop }}" as="r" hint-placeholder-count="3">
+                      <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px"><span>{{ r.name }}</span><span style="color:var(--color-text-secondary);font-variant-numeric:tabular-nums">{{ r.pct }}%</span></div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          </sc-if>
+        </section>
+        </sc-if>
+
+        <sc-if value="{{ isRealtime }}" hint-placeholder-val="{{ false }}">
+        <section data-screen-label="Realtime">
+          <h1 style="font:600 26px/1.15 'Bricolage Grotesque',sans-serif;margin:4px 0 20px;letter-spacing:-.01em">Realtime</h1>
+          <sc-if value="{{ rtQuiet }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid var(--color-border);border-radius:6px;background:var(--color-surface);padding:64px 24px;text-align:center">
+              <div style="width:10px;height:10px;border-radius:50%;background:var(--color-text-disabled);margin:0 auto 14px"></div>
+              <div style="font:600 20px 'Bricolage Grotesque',sans-serif">It's quiet right now.</div>
+              <div style="font-size:14px;color:var(--color-text-secondary);margin-top:6px">No visits in the last 5 minutes. This will update the moment someone arrives.</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ rtLive }}" hint-placeholder-val="{{ true }}">
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:22px 24px;margin-bottom:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <span style="width:10px;height:10px;border-radius:50%;background:var(--color-accent);flex:none;animation:mo-pulse 2.6s ease-out infinite"></span>
+            <span style="font:600 40px/1 'Bricolage Grotesque',sans-serif;font-variant-numeric:tabular-nums">18</span>
+            <span style="font-size:16px">active visits in the last 5 minutes</span>
+            <span style="flex:1"></span>
+            <span style="font-size:12px;color:var(--color-text-secondary)">Aggregates only — never individual profiles</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:14px 16px">
+              <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin-bottom:10px">Pageviews · last 30 minutes</div>
+              <svg viewBox="0 0 300 72" style="width:100%;height:auto;display:block" role="img" aria-label="Pageviews per minute over the last 30 minutes, between 0 and 9 per minute">{{ rtBars }}</svg>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-disabled);margin-top:4px"><span>30 min ago</span><span>now</span></div>
+            </div>
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:14px 8px">
+              <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin:0 8px 8px">Active pages</div>
+              <sc-for list="{{ rtPages }}" as="r" hint-placeholder-count="4">
+                <div style="position:relative;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:6px 10px;border-radius:3px;overflow:hidden">
+                  <div style="position:absolute;top:0;bottom:0;left:0;background:var(--color-accent-subtle);width:{{ r.pct }}%"></div>
+                  <span style="position:relative;font-family:'Fragment Mono',monospace;font-size:12.5px">{{ r.name }}</span>
+                  <span style="position:relative;font-variant-numeric:tabular-nums">{{ r.val }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:14px 8px">
+              <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin:0 8px 8px">Incoming sources</div>
+              <sc-for list="{{ rtSources }}" as="r" hint-placeholder-count="4">
+                <div style="position:relative;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:6px 10px;border-radius:3px;overflow:hidden">
+                  <div style="position:absolute;top:0;bottom:0;left:0;background:var(--color-accent-subtle);width:{{ r.pct }}%"></div>
+                  <span style="position:relative">{{ r.name }}</span>
+                  <span style="position:relative;font-variant-numeric:tabular-nums">{{ r.val }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:14px 16px">
+              <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin-bottom:8px">Countries</div>
+              <sc-for list="{{ rtCountries }}" as="r" hint-placeholder-count="5">
+                <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px"><span>{{ r.name }}</span><span style="font-variant-numeric:tabular-nums;color:var(--color-text-secondary)">{{ r.val }}</span></div>
+              </sc-for>
+              <div style="height:1px;background:var(--color-border-subtle);margin:10px 0"></div>
+              <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin-bottom:8px">Devices</div>
+              <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;gap:2px" aria-hidden="true"><div style="width:61%;background:var(--color-accent)"></div><div style="width:39%;background:var(--teal-300)"></div></div>
+              <div style="display:flex;gap:16px;margin-top:8px;font-size:13px"><span>Desktop 11</span><span style="color:var(--color-text-secondary)">Mobile 7</span></div>
+            </div>
+          </div>
+          </sc-if>
+        </section>
+        </sc-if>
+
+        <sc-if value="{{ isPages }}" hint-placeholder-val="{{ false }}">
+        <section data-screen-label="Pages">
+          <sc-if value="{{ noPageSel }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:4px 0 18px">
+              <h1 style="font:600 26px/1.15 'Bricolage Grotesque',sans-serif;margin:0;letter-spacing:-.01em">Pages</h1>
+              <div style="flex:1"></div>
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.SearchField" placeholder="Filter pages" on-change="{{ setQuery }}" hint-size="220px,36px"></x-import>
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.Select" options="{{ sortOptions }}" value="{{ sortLabel }}" on-change="{{ setSort }}" aria-label="Sort by" hint-size="150px,36px"></x-import>
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.IconButton" variant="secondary" aria-label="Reverse sort order" on-click="{{ flipSort }}" hint-size="36px,36px">{{ sortIcon }}</x-import>
+            </div>
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;overflow-x:auto">
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.Table" row-key="id" columns="{{ pageCols }}" rows="{{ pageRows }}" on-row-click="{{ openPage }}" lined="{{ true }}" hint-size="100%,420px"></x-import>
+            </div>
+            <div style="margin-top:10px;font-size:12px;color:var(--color-text-secondary)">Select a page to see its trend, referrers, and events.</div>
+          </sc-if>
+          <sc-if value="{{ hasPageSel }}" hint-placeholder-val="{{ false }}">
+            <div style="margin:4px 0 14px">
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.Button" variant="ghost" size="sm" on-click="{{ closePage }}" icon-left="{{ backIcon }}" hint-size="100px,28px">All pages</x-import>
+            </div>
+            <h1 style="font:600 24px/1.2 'Bricolage Grotesque',sans-serif;margin:0 0 2px;letter-spacing:-.01em">{{ selPageTitle }}</h1>
+            <div style="font-family:'Fragment Mono',monospace;font-size:13px;color:var(--color-text-secondary);margin-bottom:18px">hazeliscoding.com{{ selPageUrl }}</div>
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:16px">
+              <sc-for list="{{ selPageMetrics }}" as="m" hint-placeholder-count="4">
+                <div style="padding:14px 18px;border-left:1px solid var(--color-border-subtle)">
+                  <x-import component-from-global-scope="TrellisDesignSystem_c56627.Metric" label="{{ m.label }}" value="{{ m.value }}" delta="{{ m.delta }}" direction="{{ m.dir }}" hint-size="140px,56px"></x-import>
+                </div>
+              </sc-for>
+            </div>
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:14px 16px;margin-bottom:16px">
+              <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin-bottom:10px">Visitors · last 30 days</div>
+              <svg viewBox="0 0 760 120" style="width:100%;height:auto;display:block" aria-hidden="true">
+                <path d="{{ selPageArea }}" fill="var(--color-accent-subtle)" opacity="0.65"></path>
+                <path d="{{ selPageLine }}" fill="none" stroke="var(--color-accent)" stroke-width="2"></path>
+              </svg>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+              <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:14px 8px">
+                <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin:0 8px 8px">Top referrers</div>
+                <sc-for list="{{ selPageRefs }}" as="r" hint-placeholder-count="4">
+                  <div style="display:flex;justify-content:space-between;padding:5px 10px;font-size:13px"><span>{{ r.name }}</span><span style="color:var(--color-text-secondary);font-variant-numeric:tabular-nums">{{ r.val }}</span></div>
+                </sc-for>
+              </div>
+              <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:14px 8px">
+                <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin:0 8px 8px">Devices</div>
+                <sc-for list="{{ selPageDevices }}" as="r" hint-placeholder-count="3">
+                  <div style="display:flex;justify-content:space-between;padding:5px 10px;font-size:13px"><span>{{ r.name }}</span><span style="color:var(--color-text-secondary);font-variant-numeric:tabular-nums">{{ r.val }}</span></div>
+                </sc-for>
+              </div>
+              <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:14px 8px">
+                <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin:0 8px 8px">Countries</div>
+                <sc-for list="{{ selPageCountries }}" as="r" hint-placeholder-count="4">
+                  <div style="display:flex;justify-content:space-between;padding:5px 10px;font-size:13px"><span>{{ r.name }}</span><span style="color:var(--color-text-secondary);font-variant-numeric:tabular-nums">{{ r.val }}</span></div>
+                </sc-for>
+              </div>
+              <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:14px 8px">
+                <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin:0 8px 8px">Events on this page</div>
+                <sc-for list="{{ selPageEvents }}" as="r" hint-placeholder-count="2">
+                  <div style="display:flex;justify-content:space-between;padding:5px 10px;font-size:13px"><span style="font-family:'Fragment Mono',monospace;font-size:12px">{{ r.name }}</span><span style="color:var(--color-text-secondary);font-variant-numeric:tabular-nums">{{ r.val }}</span></div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </section>
+        </sc-if>
+
+        <sc-if value="{{ isSources }}" hint-placeholder-val="{{ false }}">
+        <section data-screen-label="Traffic sources">
+          <h1 style="font:600 26px/1.15 'Bricolage Grotesque',sans-serif;margin:4px 0 16px;letter-spacing:-.01em">Traffic sources</h1>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:16px 18px 10px;margin-bottom:16px">
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px">
+              <span style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary)">Traffic by channel · last 30 days</span>
+              <div style="flex:1"></div>
+              <sc-for list="{{ srcLegend }}" as="l" hint-placeholder-count="4">
+                <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)"><svg width="18" height="6" aria-hidden="true"><line x1="0" y1="3" x2="18" y2="3" stroke="{{ l.color }}" stroke-width="2" stroke-dasharray="{{ l.dash }}"></line></svg>{{ l.name }} · {{ l.total }}</span>
+              </sc-for>
+            </div>
+            <svg viewBox="0 0 760 190" style="width:100%;height:auto;display:block" role="img" aria-label="Daily visits by channel; Direct is highest, then Search, Referral and Social">
+              <line x1="8" y1="174" x2="752" y2="174" stroke="var(--color-border)"></line>
+              <path d="{{ srcLineDirect }}" fill="none" stroke="var(--color-accent)" stroke-width="2"></path>
+              <path d="{{ srcLineSearch }}" fill="none" stroke="var(--color-info)" stroke-width="2" stroke-dasharray="6 3"></path>
+              <path d="{{ srcLineReferral }}" fill="none" stroke="var(--color-warning)" stroke-width="2" stroke-dasharray="2 3"></path>
+              <path d="{{ srcLineSocial }}" fill="none" stroke="var(--color-text-secondary)" stroke-width="2" stroke-dasharray="10 4"></path>
+            </svg>
+            <div style="display:flex;justify-content:space-between;padding:6px 4px 4px;font-size:11px;color:var(--color-text-disabled)"><span>Aug 1</span><span>Aug 15</span><span>Aug 30</span></div>
+          </div>
+          <x-import component-from-global-scope="TrellisDesignSystem_c56627.Tabs" tabs="{{ srcTabs }}" value="{{ srcTab }}" on-change="{{ setSrcTab }}" hint-size="100%,40px"></x-import>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-top:none;border-radius:0 0 6px 6px;overflow-x:auto">
+            <x-import component-from-global-scope="TrellisDesignSystem_c56627.Table" row-key="id" columns="{{ srcCols }}" rows="{{ srcRows }}" hint-size="100%,280px"></x-import>
+          </div>
+          <div style="margin-top:12px">
+            <x-import component-from-global-scope="TrellisDesignSystem_c56627.InlineMessage" tone="info" hint-size="100%,24px">Sources are aggregated by domain. Mochi never records which visitor arrived from where.</x-import>
+          </div>
+        </section>
+        </sc-if>
+
+        <sc-if value="{{ isGeo }}" hint-placeholder-val="{{ false }}">
+        <section data-screen-label="Geography">
+          <h1 style="font:600 26px/1.15 'Bricolage Grotesque',sans-serif;margin:4px 0 16px;letter-spacing:-.01em">Geography</h1>
+          <div style="margin-bottom:16px">
+            <x-import component-from-global-scope="TrellisDesignSystem_c56627.InlineMessage" tone="info" hint-size="100%,24px">Locations are intentionally generalized to protect visitor privacy.</x-import>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px">
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:16px 18px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <span style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary)">Visits by country</span>
+                <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--color-text-secondary)">Fewer <span style="width:8px;height:8px;border-radius:50%;background:var(--color-accent);opacity:.3"></span><span style="width:8px;height:8px;border-radius:50%;background:var(--color-accent);opacity:.6"></span><span style="width:8px;height:8px;border-radius:50%;background:var(--color-accent)"></span> More</span>
+              </div>
+              <svg viewBox="0 0 600 235" style="width:100%;height:auto;display:block" role="img" aria-label="Stylized world map; visits concentrated in the United States, Germany, the United Kingdom and Japan">{{ mapDots }}</svg>
+              <div style="font-size:12px;color:var(--color-text-secondary);margin-top:8px">Country-level only. No cities, no coordinates, no IP addresses stored.</div>
+            </div>
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px">
+              <div style="padding:14px 16px 6px;font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary)">Countries</div>
+              <div style="padding:0 8px 8px">
+                <sc-for list="{{ geoRows }}" as="r" hint-placeholder-count="9">
+                  <div style="position:relative;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 10px;border-radius:3px;overflow:hidden">
+                    <div style="position:absolute;top:0;bottom:0;left:0;background:var(--color-accent-subtle);width:{{ r.pct }}%"></div>
+                    <span style="position:relative">{{ r.name }}</span>
+                    <span style="position:relative;display:flex;gap:14px;font-variant-numeric:tabular-nums"><span style="color:var(--color-text-secondary);font-size:12px">{{ r.pct }}%</span><span style="min-width:48px;text-align:right">{{ r.val }}</span></span>
+                  </div>
+                </sc-for>
+                <div style="padding:8px 10px;font-size:12px;color:var(--color-text-secondary)">Countries with fewer than 25 visits this period are grouped into “Other”.</div>
+              </div>
+            </div>
+          </div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;margin-top:16px;padding:14px 16px">
+            <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin-bottom:8px">Regions · United States</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:4px 24px">
+              <sc-for list="{{ usRegions }}" as="r" hint-placeholder-count="6">
+                <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid var(--color-border-subtle)"><span>{{ r.name }}</span><span style="color:var(--color-text-secondary);font-variant-numeric:tabular-nums">{{ r.val }}</span></div>
+              </sc-for>
+            </div>
+            <div style="font-size:12px;color:var(--color-text-secondary);margin-top:10px">Regions with too few visits to be safely aggregated are hidden.</div>
+          </div>
+        </section>
+        </sc-if>
+
+        <sc-if value="{{ isDevices }}" hint-placeholder-val="{{ false }}">
+        <section data-screen-label="Devices">
+          <h1 style="font:600 26px/1.15 'Bricolage Grotesque',sans-serif;margin:4px 0 16px;letter-spacing:-.01em">Devices</h1>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:16px 18px;margin-bottom:16px">
+            <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin-bottom:12px">Device types</div>
+            <div style="display:flex;height:10px;border-radius:5px;overflow:hidden;gap:2px" aria-hidden="true">
+              <div style="width:58%;background:var(--color-accent)"></div>
+              <div style="width:36%;background:var(--teal-300)"></div>
+              <div style="width:6%;background:var(--color-border)"></div>
+            </div>
+            <div style="display:flex;gap:28px;margin-top:12px;flex-wrap:wrap">
+              <sc-for list="{{ deviceRows }}" as="d" hint-placeholder-count="3">
+                <div><div style="font-size:13px;color:var(--color-text-secondary)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{{ d.color }};margin-right:6px"></span>{{ d.name }}</div><div style="font:600 20px 'Bricolage Grotesque',sans-serif;font-variant-numeric:tabular-nums;margin-top:2px">{{ d.pct }}% <span style="font:400 13px 'Hanken Grotesk',sans-serif;color:var(--color-text-secondary)">{{ d.val }}</span></div></div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px">
+              <div style="padding:14px 16px 6px;font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary)">Browsers</div>
+              <div style="padding:0 8px 10px">
+                <sc-for list="{{ browserRows }}" as="r" hint-placeholder-count="6">
+                  <div style="position:relative;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 10px;border-radius:3px;overflow:hidden">
+                    <div style="position:absolute;top:0;bottom:0;left:0;background:var(--color-accent-subtle);width:{{ r.pct }}%"></div>
+                    <span style="position:relative">{{ r.name }}</span>
+                    <span style="position:relative;display:flex;gap:14px;font-variant-numeric:tabular-nums"><span style="color:var(--color-text-secondary);font-size:12px">{{ r.pct }}%</span><span style="min-width:44px;text-align:right">{{ r.val }}</span></span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px">
+              <div style="padding:14px 16px 6px;font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary)">Operating systems</div>
+              <div style="padding:0 8px 10px">
+                <sc-for list="{{ osRows }}" as="r" hint-placeholder-count="5">
+                  <div style="position:relative;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 10px;border-radius:3px;overflow:hidden">
+                    <div style="position:absolute;top:0;bottom:0;left:0;background:var(--color-accent-subtle);width:{{ r.pct }}%"></div>
+                    <span style="position:relative">{{ r.name }}</span>
+                    <span style="position:relative;display:flex;gap:14px;font-variant-numeric:tabular-nums"><span style="color:var(--color-text-secondary);font-size:12px">{{ r.pct }}%</span><span style="min-width:44px;text-align:right">{{ r.val }}</span></span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:12px;font-size:12px;color:var(--color-text-secondary)">Device details come from the browser's own reported user agent — never from fingerprinting.</div>
+        </section>
+        </sc-if>
+
+        <sc-if value="{{ isEvents }}" hint-placeholder-val="{{ false }}">
+        <section data-screen-label="Events">
+          <sc-if value="{{ noEventSel }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:4px 0 6px">
+              <h1 style="font:600 26px/1.15 'Bricolage Grotesque',sans-serif;margin:0;letter-spacing:-.01em">Events</h1>
+              <span style="font-size:13px;color:var(--color-text-secondary)">Custom events you send with <span style="font-family:'Fragment Mono',monospace;font-size:12px">mochi.event()</span></span>
+            </div>
+            <div style="margin:12px 0 16px">
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.InlineMessage" tone="info" hint-size="100%,24px">Events are counted in aggregate and are never tied to an individual visitor.</x-import>
+            </div>
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px">
+              <div style="display:grid;grid-template-columns:minmax(200px,2fr) 1fr 1fr 1fr 110px;gap:12px;padding:10px 16px;border-bottom:1px solid var(--color-border);font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary)">
+                <span>Event</span><span style="text-align:right">Total</span><span style="text-align:right">Unique visits</span><span style="text-align:right">Conversion</span><span>Trend</span>
+              </div>
+              <sc-for list="{{ eventRows }}" as="e" hint-placeholder-count="5">
+                <button onClick="{{ e.open }}" style="display:grid;grid-template-columns:minmax(200px,2fr) 1fr 1fr 1fr 110px;gap:12px;align-items:center;padding:10px 16px;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--color-border-subtle);cursor:pointer;font:inherit;color:inherit" style-hover="background:var(--color-surface-subtle)">
+                  <span style="font-family:'Fragment Mono',monospace;font-size:12.5px;color:var(--color-accent)">{{ e.name }}</span>
+                  <span style="text-align:right;font-variant-numeric:tabular-nums">{{ e.total }}</span>
+                  <span style="text-align:right;font-variant-numeric:tabular-nums">{{ e.uniq }}</span>
+                  <span style="text-align:right;font-variant-numeric:tabular-nums">{{ e.conv }}</span>
+                  <svg viewBox="0 0 90 24" style="width:90px;height:24px" aria-hidden="true"><path d="{{ e.spark }}" fill="none" stroke="var(--color-accent)" stroke-width="1.5"></path></svg>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ hasEventSel }}" hint-placeholder-val="{{ false }}">
+            <div style="margin:4px 0 14px">
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.Button" variant="ghost" size="sm" on-click="{{ closeEvent }}" icon-left="{{ backIcon }}" hint-size="100px,28px">All events</x-import>
+            </div>
+            <h1 style="font:600 22px/1.2 'Fragment Mono',monospace;margin:0 0 18px">{{ selEventName }}</h1>
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:16px">
+              <sc-for list="{{ selEventMetrics }}" as="m" hint-placeholder-count="3">
+                <div style="padding:14px 18px;border-left:1px solid var(--color-border-subtle)">
+                  <x-import component-from-global-scope="TrellisDesignSystem_c56627.Metric" label="{{ m.label }}" value="{{ m.value }}" delta="{{ m.delta }}" direction="{{ m.dir }}" hint-size="140px,56px"></x-import>
+                </div>
+              </sc-for>
+            </div>
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:14px 16px;margin-bottom:16px">
+              <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin-bottom:10px">Events · last 30 days</div>
+              <svg viewBox="0 0 760 120" style="width:100%;height:auto;display:block" aria-hidden="true">
+                <path d="{{ selEventArea }}" fill="var(--color-accent-subtle)" opacity="0.65"></path>
+                <path d="{{ selEventLine }}" fill="none" stroke="var(--color-accent)" stroke-width="2"></path>
+              </svg>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+              <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:14px 8px">
+                <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin:0 8px 8px">Pages where it fired</div>
+                <sc-for list="{{ selEventPages }}" as="r" hint-placeholder-count="3">
+                  <div style="display:flex;justify-content:space-between;padding:5px 10px;font-size:13px"><span style="font-family:'Fragment Mono',monospace;font-size:12px">{{ r.name }}</span><span style="color:var(--color-text-secondary);font-variant-numeric:tabular-nums">{{ r.val }}</span></div>
+                </sc-for>
+              </div>
+              <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:14px 8px">
+                <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin:0 8px 8px">Sources</div>
+                <sc-for list="{{ selEventSources }}" as="r" hint-placeholder-count="3">
+                  <div style="display:flex;justify-content:space-between;padding:5px 10px;font-size:13px"><span>{{ r.name }}</span><span style="color:var(--color-text-secondary);font-variant-numeric:tabular-nums">{{ r.val }}</span></div>
+                </sc-for>
+              </div>
+              <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:14px 8px">
+                <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin:0 8px 8px">Devices &amp; countries</div>
+                <sc-for list="{{ selEventDevGeo }}" as="r" hint-placeholder-count="4">
+                  <div style="display:flex;justify-content:space-between;padding:5px 10px;font-size:13px"><span>{{ r.name }}</span><span style="color:var(--color-text-secondary);font-variant-numeric:tabular-nums">{{ r.val }}</span></div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </section>
+        </sc-if>
+
+        <sc-if value="{{ isGoals }}" hint-placeholder-val="{{ false }}">
+        <section data-screen-label="Goals">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:4px 0 18px">
+            <h1 style="font:600 26px/1.15 'Bricolage Grotesque',sans-serif;margin:0;letter-spacing:-.01em">Goals</h1>
+            <div style="flex:1"></div>
+            <x-import component-from-global-scope="TrellisDesignSystem_c56627.Button" variant="primary" on-click="{{ openGoalDialog }}" icon-left="{{ plusIcon }}" hint-size="120px,36px">Create goal</x-import>
+          </div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px">
+            <div style="display:grid;grid-template-columns:minmax(200px,2fr) 110px 1fr 1fr 110px;gap:12px;padding:10px 16px;border-bottom:1px solid var(--color-border);font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary)">
+              <span>Goal</span><span>Type</span><span style="text-align:right">Conversions</span><span style="text-align:right">Conversion rate</span><span>Trend</span>
+            </div>
+            <sc-for list="{{ goalRows }}" as="g" hint-placeholder-count="4">
+              <div style="display:grid;grid-template-columns:minmax(200px,2fr) 110px 1fr 1fr 110px;gap:12px;align-items:center;padding:11px 16px;border-bottom:1px solid var(--color-border-subtle)">
+                <span style="font-weight:600">{{ g.name }}</span>
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.Tag" hint-size="70px,20px">{{ g.type }}</x-import>
+                <span style="text-align:right;font-variant-numeric:tabular-nums">{{ g.conv }}</span>
+                <span style="text-align:right;font-variant-numeric:tabular-nums">{{ g.rate }}</span>
+                <svg viewBox="0 0 90 24" style="width:90px;height:24px" aria-hidden="true"><path d="{{ g.spark }}" fill="none" stroke="var(--color-accent)" stroke-width="1.5"></path></svg>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top:10px;font-size:12px;color:var(--color-text-secondary)">Conversion rate is unique conversions divided by unique visits in the period.</div>
+          <x-import component-from-global-scope="TrellisDesignSystem_c56627.Dialog" open="{{ goalOpen }}" on-close="{{ closeGoalDialog }}" title="Create goal" hint-size="0px,0px">
+            <div style="display:flex;flex-direction:column;gap:14px;min-width:340px">
+              <div>
+                <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin-bottom:8px">What counts as a conversion?</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                  <sc-for list="{{ goalTypes }}" as="t" hint-placeholder-count="4">
+                    <label style="display:flex;gap:8px;align-items:flex-start;border:1px solid {{ t.border }};border-radius:3px;padding:10px 12px;cursor:pointer;background:{{ t.bg }}">
+                      <input type="radio" name="goaltype" checked="{{ t.checked }}" onChange="{{ t.pick }}" style="margin-top:2px;accent-color:var(--color-accent)">
+                      <span><span style="font-weight:600;display:block">{{ t.name }}</span><span style="font-size:12px;color:var(--color-text-secondary)">{{ t.desc }}</span></span>
+                    </label>
+                  </sc-for>
+                </div>
+              </div>
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.FormField" label="Goal name" hint-size="100%,60px">
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.TextInput" placeholder="e.g. Downloaded résumé" hint-size="100%,36px"></x-import>
+              </x-import>
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.FormField" label="{{ goalTargetLabel }}" hint-size="100%,60px">
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.TextInput" placeholder="{{ goalTargetHint }}" hint-size="100%,36px"></x-import>
+              </x-import>
+              <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.Button" on-click="{{ closeGoalDialog }}" hint-size="80px,36px">Cancel</x-import>
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.Button" variant="primary" on-click="{{ closeGoalDialog }}" hint-size="110px,36px">Create goal</x-import>
+              </div>
+            </div>
+          </x-import>
+        </section>
+        </sc-if>
+
+        <sc-if value="{{ isSites }}" hint-placeholder-val="{{ false }}">
+        <section data-screen-label="Websites">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:4px 0 18px">
+            <h1 style="font:600 26px/1.15 'Bricolage Grotesque',sans-serif;margin:0;letter-spacing:-.01em">Websites</h1>
+            <div style="flex:1"></div>
+            <x-import component-from-global-scope="TrellisDesignSystem_c56627.Button" variant="primary" on-click="{{ goAddSite }}" icon-left="{{ plusIcon }}" hint-size="130px,36px">Add website</x-import>
+          </div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px">
+            <sc-for list="{{ siteRows }}" as="s" hint-placeholder-count="4">
+              <button onClick="{{ s.open }}" style="display:flex;align-items:center;gap:20px;width:100%;padding:16px 18px;background:none;border:none;border-bottom:1px solid var(--color-border-subtle);cursor:pointer;font:inherit;color:inherit;text-align:left;flex-wrap:wrap" style-hover="background:var(--color-surface-subtle)">
+                <div style="min-width:220px;flex:1">
+                  <div style="font:600 16px 'Bricolage Grotesque',sans-serif">{{ s.name }}</div>
+                  <div style="font-family:'Fragment Mono',monospace;font-size:12px;color:var(--color-text-secondary);margin-top:2px">{{ s.domain }}</div>
+                </div>
+                <svg viewBox="0 0 140 32" style="width:140px;height:32px;flex:none" aria-hidden="true"><path d="{{ s.spark }}" fill="none" stroke="var(--color-accent)" stroke-width="1.5"></path></svg>
+                <div style="min-width:120px;text-align:right">
+                  <div style="font:600 16px 'Bricolage Grotesque',sans-serif;font-variant-numeric:tabular-nums">{{ s.views }}</div>
+                  <div style="font-size:12px;color:var(--color-text-secondary)">views this month</div>
+                </div>
+                <div style="min-width:110px;font-size:13px;color:var(--color-text-secondary)">{{ s.activeLabel }}</div>
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.StatusIndicator" tone="{{ s.tone }}" hint-size="90px,20px">{{ s.status }}</x-import>
+              </button>
+            </sc-for>
+          </div>
+        </section>
+        </sc-if>
+
+        <sc-if value="{{ isAddSite }}" hint-placeholder-val="{{ false }}">
+        <section data-screen-label="Add website" style="max-width:640px;margin:0 auto">
+          <h1 style="font:600 26px/1.15 'Bricolage Grotesque',sans-serif;margin:4px 0 6px;letter-spacing:-.01em">Add a website</h1>
+          <div style="font-size:14px;color:var(--color-text-secondary);margin-bottom:20px">Three small steps. No cookie banner required afterwards.</div>
+          <div style="display:flex;gap:8px;margin-bottom:24px" aria-hidden="true">
+            <sc-for list="{{ addSteps }}" as="st" hint-placeholder-count="3">
+              <div style="flex:1;display:flex;align-items:center;gap:8px">
+                <span style="width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;background:{{ st.bg }};color:{{ st.fg }};border:1px solid {{ st.border }}">{{ st.n }}</span>
+                <span style="font-size:13px;color:{{ st.labelColor }}">{{ st.label }}</span>
+                <span style="flex:1;height:1px;background:var(--color-border-subtle)"></span>
+              </div>
+            </sc-for>
+          </div>
+          <sc-if value="{{ addS1 }}" hint-placeholder-val="{{ true }}">
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:22px;display:flex;flex-direction:column;gap:16px">
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.FormField" label="Website name" hint-size="100%,60px">
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.TextInput" placeholder="My portfolio" hint-size="100%,36px"></x-import>
+              </x-import>
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.FormField" label="Domain" hint="Just the domain — no https:// or paths." hint-size="100%,74px">
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.TextInput" placeholder="example.com" hint-size="100%,36px"></x-import>
+              </x-import>
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.FormField" label="Time zone" hint-size="100%,60px">
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.Select" options="{{ tzOptions }}" value="{{ tz }}" on-change="{{ setTz }}" hint-size="100%,36px"></x-import>
+              </x-import>
+              <div style="display:flex;justify-content:flex-end"><x-import component-from-global-scope="TrellisDesignSystem_c56627.Button" variant="primary" on-click="{{ addNext1 }}" hint-size="100px,36px">Continue</x-import></div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ addS2 }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:22px">
+              <div style="font-weight:600;margin-bottom:4px">Install the snippet</div>
+              <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:14px">One script tag, under 1 KB, no cookies. Pick your setup:</div>
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.Tabs" tabs="{{ fwTabs }}" value="{{ fw }}" on-change="{{ setFw }}" hint-size="100%,40px"></x-import>
+              <div style="margin-top:14px">
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.CodeBlock" filename="{{ fwFile }}" code="{{ fwCode }}" hint-size="100%,120px"></x-import>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:18px">
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.Button" variant="ghost" on-click="{{ addBack1 }}" hint-size="80px,36px">Back</x-import>
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.Button" variant="primary" on-click="{{ addNext2 }}" hint-size="140px,36px">I've installed it</x-import>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ addS3 }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:40px 24px;text-align:center">
+              <div style="width:56px;height:56px;border-radius:50%;background:var(--color-success-bg);display:inline-flex;align-items:center;justify-content:center;animation:mo-pop .5s ease-out both">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+              </div>
+              <div style="font:600 20px 'Bricolage Grotesque',sans-serif;margin-top:14px">Mochi is receiving analytics from your website. 🍡</div>
+              <div style="font-size:14px;color:var(--color-text-secondary);margin-top:6px;max-width:400px;margin-left:auto;margin-right:auto">Your first visit just arrived. Aggregates will build up over the next few hours.</div>
+              <div style="margin-top:20px;display:flex;gap:8px;justify-content:center">
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.Button" variant="ghost" on-click="{{ addBack2 }}" hint-size="80px,36px">Back</x-import>
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.Button" variant="primary" on-click="{{ goOverview }}" hint-size="150px,36px">Go to dashboard</x-import>
+              </div>
+            </div>
+          </sc-if>
+        </section>
+        </sc-if>
+
+        <sc-if value="{{ isPrivacy }}" hint-placeholder-val="{{ false }}">
+        <section data-screen-label="Privacy center" style="max-width:760px">
+          <h1 style="font:600 26px/1.15 'Bricolage Grotesque',sans-serif;margin:4px 0 6px;letter-spacing:-.01em">Privacy center</h1>
+          <div style="font-size:14px;color:var(--color-text-secondary);margin-bottom:22px;max-width:560px">Mochi measures your website, not your visitors. Here is exactly what that means — no legal document required.</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-bottom:26px">
+            <sc-for list="{{ privChecks }}" as="c" hint-placeholder-count="6">
+              <div style="display:flex;gap:10px;align-items:flex-start;border:1px solid var(--color-border);border-radius:6px;padding:12px 14px;background:var(--color-surface)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+                <span><span style="font-weight:600;display:block">{{ c.name }}</span><span style="font-size:12.5px;color:var(--color-text-secondary)">{{ c.desc }}</span></span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:26px">
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:16px 18px">
+              <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin-bottom:10px">Data we collect</div>
+              <sc-for list="{{ collectedItems }}" as="i" hint-placeholder-count="6">
+                <div style="padding:5px 0;font-size:13.5px;border-bottom:1px solid var(--color-border-subtle)">{{ i.name }} <span style="color:var(--color-text-secondary);font-size:12.5px">— {{ i.desc }}</span></div>
+              </sc-for>
+            </div>
+            <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:16px 18px">
+              <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin-bottom:10px">Data we refuse to collect</div>
+              <sc-for list="{{ notCollectedItems }}" as="i" hint-placeholder-count="6">
+                <div style="padding:5px 0;font-size:13.5px;border-bottom:1px solid var(--color-border-subtle);display:flex;gap:8px"><span style="color:var(--color-text-disabled)" aria-hidden="true">✕</span><span>{{ i.name }} <span style="color:var(--color-text-secondary);font-size:12.5px">— {{ i.desc }}</span></span></div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:16px 18px;margin-bottom:16px">
+            <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin-bottom:4px">Data retention</div>
+            <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:12px">How long Mochi keeps daily aggregates for this website. Nothing here extends what is collected — only how long totals are kept.</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <sc-for list="{{ retOptions }}" as="r" hint-placeholder-count="4">
+                <label style="display:flex;gap:10px;align-items:center;cursor:pointer">
+                  <input type="radio" name="retention" checked="{{ r.checked }}" onChange="{{ r.pick }}" style="accent-color:var(--color-accent)">
+                  <span style="font-weight:600;min-width:190px">{{ r.name }}</span>
+                  <span style="font-size:12.5px;color:var(--color-text-secondary)">{{ r.desc }}</span>
+                </label>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:6px;padding:16px 18px">
+            <div style="font:600 11px 'Hanken Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-secondary);margin-bottom:8px">Privacy thresholds</div>
+            <p style="margin:0;font-size:13.5px;line-height:1.55;max-width:560px">When a group gets very small — say, three visitors from one region on one browser — reporting it could identify someone. Mochi automatically groups or hides segments below a safe minimum, so your reports stay useful without ever pointing at a person.</p>
+          </div>
+        </section>
+        </sc-if>
+
+        <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+        <section data-screen-label="Website settings" style="max-width:680px">
+          <h1 style="font:600 26px/1.15 'Bricolage Grotesque',sans-serif;margin:4px 0 22px;letter-spacing:-.01em">Website settings</h1>
+          <div style="display:flex;flex-direction:column;gap:26px">
+            <div>
+              <div style="font:600 16px 'Bricolage Grotesque',sans-serif;padding-bottom:8px;border-bottom:1px solid var(--color-border);margin-bottom:16px">General</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.FormField" label="Site name" hint-size="100%,60px"><x-import component-from-global-scope="TrellisDesignSystem_c56627.TextInput" default-value="hazeliscoding" hint-size="100%,36px"></x-import></x-import>
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.FormField" label="Domain" hint-size="100%,60px"><x-import component-from-global-scope="TrellisDesignSystem_c56627.TextInput" default-value="hazeliscoding.com" hint-size="100%,36px"></x-import></x-import>
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.FormField" label="Time zone" hint-size="100%,60px"><x-import component-from-global-scope="TrellisDesignSystem_c56627.Select" options="{{ tzOptions }}" value="{{ tz }}" on-change="{{ setTz }}" hint-size="100%,36px"></x-import></x-import>
+              </div>
+            </div>
+            <div>
+              <div style="font:600 16px 'Bricolage Grotesque',sans-serif;padding-bottom:8px;border-bottom:1px solid var(--color-border);margin-bottom:16px">Analytics</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.FormField" label="Excluded paths" hint="One pattern per line. These pages are never counted." hint-size="100%,110px"><x-import component-from-global-scope="TrellisDesignSystem_c56627.Textarea" default-value="/admin/*&#10;/drafts/*" hint-size="100%,70px"></x-import></x-import>
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.Switch" label="Ignore query parameters" checked="{{ qsIgnore }}" on-change="{{ toggleQs }}" hint-size="240px,24px"></x-import>
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.Switch" label="Filter known bots and crawlers" checked="{{ botFilter }}" on-change="{{ toggleBots }}" hint-size="240px,24px"></x-import>
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.Switch" label="Exclude my own visits" checked="{{ selfFilter }}" on-change="{{ toggleSelf }}" hint-size="240px,24px"></x-import>
+              </div>
+            </div>
+            <div>
+              <div style="font:600 16px 'Bricolage Grotesque',sans-serif;padding-bottom:8px;border-bottom:1px solid var(--color-border);margin-bottom:16px">Privacy</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.FormField" label="Data retention" hint-size="100%,60px"><x-import component-from-global-scope="TrellisDesignSystem_c56627.Select" options="{{ retSelectOptions }}" value="{{ retSelect }}" on-change="{{ setRetSelect }}" hint-size="100%,36px"></x-import></x-import>
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.FormField" label="Geographic precision" hint="Country is the default. Region requires enough traffic to stay anonymous." hint-size="100%,74px"><x-import component-from-global-scope="TrellisDesignSystem_c56627.Select" options="{{ geoOptions }}" value="{{ geoPrecision }}" on-change="{{ setGeoPrecision }}" hint-size="100%,36px"></x-import></x-import>
+                <div style="display:flex;align-items:center;gap:10px;font-size:13.5px"><x-import component-from-global-scope="TrellisDesignSystem_c56627.StatusIndicator" tone="success" hint-size="140px,20px">IP anonymization</x-import><span style="color:var(--color-text-secondary)">Always on — addresses are discarded at ingestion and never stored.</span></div>
+              </div>
+            </div>
+            <div>
+              <div style="font:600 16px 'Bricolage Grotesque',sans-serif;padding-bottom:8px;border-bottom:1px solid var(--color-border);margin-bottom:16px">Tracking script</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;margin-bottom:12px"><x-import component-from-global-scope="TrellisDesignSystem_c56627.StatusIndicator" tone="success" hint-size="90px,20px">Installed</x-import><span style="color:var(--color-text-secondary)">Last event received 2 minutes ago.</span></div>
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.CodeBlock" filename="index.html" code="{{ baseSnippet }}" hint-size="100%,80px"></x-import>
+            </div>
+            <div>
+              <div style="font:600 16px 'Bricolage Grotesque',sans-serif;padding-bottom:8px;border-bottom:1px solid var(--color-border);margin-bottom:16px">Data</div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+                  <span style="font-size:13.5px">Export all analytics for this website as CSV.</span>
+                  <x-import component-from-global-scope="TrellisDesignSystem_c56627.Button" icon-left="{{ downloadIcon }}" hint-size="150px,36px">Export analytics</x-import>
+                </div>
+                <div style="border:1px solid var(--color-danger);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:12px">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+                    <span style="font-size:13.5px"><span style="font-weight:600;display:block">Delete analytics data</span><span style="color:var(--color-text-secondary);font-size:12.5px">Removes every aggregate for this site. The site itself stays connected.</span></span>
+                    <x-import component-from-global-scope="TrellisDesignSystem_c56627.Button" variant="danger" on-click="{{ openDel }}" hint-size="120px,36px">Delete data</x-import>
+                  </div>
+                  <div style="height:1px;background:var(--color-border-subtle)"></div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+                    <span style="font-size:13.5px"><span style="font-weight:600;display:block">Delete website</span><span style="color:var(--color-text-secondary);font-size:12.5px">Removes the site and all of its analytics from Mochi. This cannot be undone.</span></span>
+                    <x-import component-from-global-scope="TrellisDesignSystem_c56627.Button" variant="danger" on-click="{{ openDel }}" hint-size="130px,36px">Delete website</x-import>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <x-import component-from-global-scope="TrellisDesignSystem_c56627.Dialog" open="{{ delOpen }}" on-close="{{ closeDel }}" title="Delete website?" hint-size="0px,0px">
+            <div style="max-width:380px;display:flex;flex-direction:column;gap:14px">
+              <p style="margin:0;font-size:13.5px;line-height:1.55">This permanently deletes <strong>hazeliscoding.com</strong> and every aggregate Mochi has stored for it. There is no undo and no recovery window.</p>
+              <x-import component-from-global-scope="TrellisDesignSystem_c56627.FormField" label="Type the domain to confirm" hint-size="100%,60px"><x-import component-from-global-scope="TrellisDesignSystem_c56627.TextInput" placeholder="hazeliscoding.com" hint-size="100%,36px"></x-import></x-import>
+              <div style="display:flex;justify-content:flex-end;gap:8px">
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.Button" on-click="{{ closeDel }}" hint-size="80px,36px">Cancel</x-import>
+                <x-import component-from-global-scope="TrellisDesignSystem_c56627.Button" variant="danger" on-click="{{ closeDel }}" hint-size="140px,36px">Delete website</x-import>
+              </div>
+            </div>
+          </x-import>
+        </section>
+        </sc-if>
+                
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dark&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Appearance&quot;},&quot;density&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;comfortable&quot;,&quot;options&quot;:[&quot;comfortable&quot;,&quot;compact&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Appearance&quot;},&quot;dataState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;live&quot;,&quot;options&quot;:[&quot;live&quot;,&quot;loading&quot;,&quot;first-run&quot;,&quot;quiet&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Preview states&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      nav: 'overview', themeOverride: null, site: 'hazeliscoding.com',
+      range: 'Last 30 days', compare: 'vs previous period', metric: 'visitors',
+      pageSel: null, eventSel: null, query: '', sortKey: 'v', sortDir: -1,
+      srcTab: 'referrers', goalOpen: false, goalType: 'event', delOpen: false,
+      addStep: 1, fw: 'HTML', tz: '(UTC−05:00) Eastern Time',
+      qsIgnore: true, botFilter: true, selfFilter: false,
+      retention: '1 year', retSelect: '1 year', geoPrecision: 'Country only',
+      narrow: typeof window !== 'undefined' && window.innerWidth < 900
+    };
+    this.mainRef = React.createRef();
+    const rnd = seed => { let s = seed; return () => ((s = s * 16807 % 2147483647) / 2147483647); };
+    const r1 = rnd(42), r2 = rnd(1337);
+    this.visitors = []; this.pageviews = []; this.sessions = []; this.prev = [];
+    for (let i = 0; i < 30; i++) {
+      const spike = i === 18 ? 430 : (i === 19 ? 180 : 0);
+      const v = Math.round(170 + i * 2.6 + r1() * 75 + spike);
+      this.visitors.push(v);
+      this.pageviews.push(Math.round(v * (1.75 + r1() * 0.35)));
+      this.sessions.push(Math.round(v * (1.05 + r1() * 0.12)));
+      this.prev.push(Math.round(160 + i * 2.2 + r2() * 70));
+    }
+  }
+  componentDidMount() {
+    this._onResize = () => this.setState({ narrow: window.innerWidth < 900 });
+    window.addEventListener('resize', this._onResize);
+    if (!window.lucide) {
+      let tries = 0;
+      this._poll = setInterval(() => {
+        if (window.lucide || ++tries > 25) { clearInterval(this._poll); this.forceUpdate(); }
+      }, 200);
+    }
+  }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this._onResize);
+    if (this._poll) clearInterval(this._poll);
+  }
+  icon(name, size) {
+    const DS = window.TrellisDesignSystem_c56627;
+    return DS && DS.Icon ? React.createElement(DS.Icon, { name, size: size || 16 }) : null;
+  }
+  linePts(arr, x0, x1, top, bottom, max) {
+    const n = arr.length;
+    return arr.map((v, i) => [x0 + i * (x1 - x0) / (n - 1), bottom - (v / max) * (bottom - top)]);
+  }
+  lineD(pts) { return pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(''); }
+  areaD(pts, bottom) {
+    return 'M' + pts[0][0].toFixed(1) + ' ' + bottom + this.lineD(pts).replace(/^M/, 'L') + 'L' + pts[pts.length - 1][0].toFixed(1) + ' ' + bottom + 'Z';
+  }
+  sparkD(arr, w, h) {
+    const max = Math.max(...arr), pts = this.linePts(arr, 2, w - 2, 3, h - 3, max);
+    return this.lineD(pts);
+  }
+  renderVals() {
+    const st = this.state, p = this.props;
+    const theme = st.themeOverride ?? (p.theme ?? 'dark');
+    const ds = p.dataState ?? 'live';
+    const narrow = st.narrow, wide = !narrow;
+    const fmt = n => n.toLocaleString('en-US');
+    const go = id => { this.setState({ nav: id, pageSel: null, eventSel: null }); if (this.mainRef.current) this.mainRef.current.scrollTop = 0; };
+    const navItems = [
+      ['overview', 'Overview', 'layout-dashboard'], ['realtime', 'Realtime', 'activity'],
+      ['pages', 'Pages', 'file-text'], ['sources', 'Sources', 'compass'],
+      ['geo', 'Geography', 'globe'], ['devices', 'Devices', 'monitor-smartphone'],
+      ['events', 'Events', 'mouse-pointer-click'], ['goals', 'Goals', 'target']
+    ];
+    const manageItems = [
+      ['sites', 'Websites', 'layers'], ['addsite', 'Add website', 'plus'],
+      ['privacy', 'Privacy center', 'shield-check'], ['settings', 'Website settings', 'settings']
+    ];
+    const mk = a => ({ id: a[0], label: a[1], icon: this.icon(a[2]) });
+    const series = st.metric === 'pageviews' ? this.pageviews : (st.metric === 'sessions' ? this.sessions : this.visitors);
+    const scale = st.metric === 'pageviews' ? 1.85 : (st.metric === 'sessions' ? 1.1 : 1);
+    const prevS = this.prev.map(v => Math.round(v * scale));
+    const yMaxRaw = Math.max(...series, ...prevS) * 1.06;
+    const pts = this.linePts(series, 8, 752, 24, 214, yMaxRaw);
+    const ptsPrev = this.linePts(prevS, 8, 752, 24, 214, yMaxRaw);
+    const PAGES = [
+      { id: '/', title: 'Home', v: 3120, pv: 4890, bounce: 38, dur: '1m 12s', entry: 2980, exit: 1450 },
+      { id: '/projects', title: 'Projects', v: 2140, pv: 3620, bounce: 31, dur: '2m 04s', entry: 640, exit: 780 },
+      { id: '/blog', title: 'Blog', v: 1730, pv: 3480, bounce: 44, dur: '2m 31s', entry: 890, exit: 610 },
+      { id: '/blog/shipping-kawaii-ui', title: 'Shipping Kawaii UI', v: 1260, pv: 1410, bounce: 52, dur: '3m 18s', entry: 1120, exit: 940 },
+      { id: '/projects/kawaii-ui', title: 'Kawaii UI', v: 840, pv: 1680, bounce: 29, dur: '2m 47s', entry: 310, exit: 260 },
+      { id: '/about', title: 'About', v: 960, pv: 1150, bounce: 41, dur: '1m 05s', entry: 220, exit: 480 },
+      { id: '/uses', title: 'Uses', v: 410, pv: 470, bounce: 55, dur: '0m 58s', entry: 130, exit: 210 },
+      { id: '/blog/why-i-left-big-analytics', title: 'Why I left big analytics', v: 380, pv: 425, bounce: 48, dur: '4m 02s', entry: 290, exit: 250 }
+    ];
+    const sortKeys = { 'Visitors': 'v', 'Pageviews': 'pv', 'Bounce rate': 'bounce', 'Entry visits': 'entry', 'Exit visits': 'exit' };
+    const q = st.query.toLowerCase();
+    const filtered = PAGES.filter(pg => !q || pg.id.toLowerCase().includes(q) || pg.title.toLowerCase().includes(q));
+    const sorted = filtered.slice().sort((a, b) => (a[st.sortKey] - b[st.sortKey]) * st.sortDir);
+    const pageRow = pg => ({
+      id: pg.id, page: pg.id, v: fmt(pg.v), pv: fmt(pg.pv),
+      vpv: (pg.pv / pg.v).toFixed(1), bounce: pg.bounce + '%', dur: pg.dur, entry: fmt(pg.entry), exit: fmt(pg.exit)
+    });
+    const selPage = st.pageSel ? PAGES.find(pg => pg.id === st.pageSel) : null;
+    const detailSeries = this.visitors.map((v, i) => Math.round(v * (selPage ? selPage.v / 8214 : 0.3) * (0.8 + ((i * 7) % 5) / 10)));
+    const dMax = Math.max(...detailSeries) * 1.1;
+    const dPts = this.linePts(detailSeries, 8, 752, 8, 112, dMax);
+    const chan = { direct: 0.38, search: 0.29, referral: 0.24, social: 0.09 };
+    const chanLine = (f, jseed) => {
+      const arr = this.visitors.map((v, i) => Math.round(v * f * (0.82 + ((i * jseed) % 7) / 18)));
+      const m = Math.max(...this.visitors) * 0.45;
+      return this.lineD(this.linePts(arr, 8, 752, 14, 174, m));
+    };
+    const SRC = {
+      referrers: {
+        cols: [{ key: 'name', label: 'Referrer' }, { key: 'v', label: 'Visitors', numeric: true }, { key: 'pv', label: 'Pageviews', numeric: true }, { key: 'bounce', label: 'Bounce', numeric: true }],
+        rows: [
+          { id: 'gh', name: 'github.com', v: '842', pv: '1,690', bounce: '28%' },
+          { id: 'go', name: 'google.com', v: '2,210', pv: '3,980', bounce: '43%' },
+          { id: 'rd', name: 'reddit.com', v: '512', pv: '890', bounce: '51%' },
+          { id: 'hn', name: 'news.ycombinator.com', v: '460', pv: '1,120', bounce: '39%' },
+          { id: 'bg', name: 'bing.com', v: '173', pv: '260', bounce: '47%' },
+          { id: 'dev', name: 'dev.to', v: '128', pv: '245', bounce: '35%' }
+        ]
+      },
+      search: {
+        cols: [{ key: 'name', label: 'Search engine' }, { key: 'v', label: 'Visitors', numeric: true }, { key: 'share', label: 'Share', numeric: true }],
+        rows: [
+          { id: 's1', name: 'Google', v: '2,210', share: '89%' },
+          { id: 's2', name: 'Bing', v: '173', share: '7%' },
+          { id: 's3', name: 'DuckDuckGo', v: '96', share: '4%' }
+        ]
+      },
+      social: {
+        cols: [{ key: 'name', label: 'Platform' }, { key: 'v', label: 'Visitors', numeric: true }, { key: 'pv', label: 'Pageviews', numeric: true }],
+        rows: [
+          { id: 'p1', name: 'Reddit', v: '512', pv: '890' },
+          { id: 'p2', name: 'Mastodon', v: '134', pv: '250' },
+          { id: 'p3', name: 'Bluesky', v: '92', pv: '160' }
+        ]
+      },
+      campaigns: {
+        cols: [{ key: 'name', label: 'Campaign' }, { key: 'sm', label: 'Source / medium' }, { key: 'v', label: 'Visitors', numeric: true }, { key: 'conv', label: 'Conversions', numeric: true }],
+        rows: [
+          { id: 'c1', name: 'newsletter-aug', sm: 'buttondown / email', v: '284', conv: '41' },
+          { id: 'c2', name: 'kawaii-ui-launch', sm: 'reddit / social', v: '196', conv: '22' },
+          { id: 'c3', name: 'conf-talk-qr', sm: 'qr / offline', v: '58', conv: '9' }
+        ]
+      }
+    };
+    const GEO = [
+      ['United States', 2870, 35], ['Germany', 1150, 14], ['United Kingdom', 985, 12],
+      ['Japan', 740, 9], ['Canada', 660, 8], ['Netherlands', 420, 5],
+      ['Australia', 390, 5], ['France', 310, 4], ['Other', 689, 8]
+    ];
+    const land = [
+      [[2, 9], [16, 20], [32, 58]], [[1, 10], [16, 20], [30, 58]], [[2, 12], [17, 19], [29, 33], [34, 58]],
+      [[3, 13], [28, 34], [35, 57]], [[3, 14], [28, 36], [37, 55]], [[3, 14], [28, 37], [38, 54]],
+      [[3, 13], [28, 38], [39, 52], [53, 54]], [[4, 12], [27, 40], [41, 50], [52, 53]],
+      [[4, 10], [26, 42], [42, 50]], [[4, 8], [26, 40], [42, 46], [47, 50]],
+      [[5, 8], [25, 36], [42, 45], [46, 50]], [[6, 8], [25, 35], [43, 44], [46, 51]],
+      [[7, 10], [25, 34], [47, 53]], [[8, 12], [25, 33], [48, 55]], [[8, 13], [26, 33], [49, 56]],
+      [[8, 13], [26, 32]], [[8, 13], [27, 32], [51, 56]], [[8, 12], [27, 31], [50, 57]],
+      [[9, 12], [28, 31], [50, 57]], [[9, 11], [28, 30], [51, 56]], [[9, 11], [28, 30]],
+      [[9, 10]], [[9, 10]], [[9, 9]]
+    ];
+    const hls = [
+      [5, 7, 4, 12, 1], [2, 4, 4, 12, 0.5], [3, 3, 28, 29, 0.8], [4, 4, 31, 32, 0.85],
+      [4, 4, 30, 30, 0.5], [5, 5, 29, 30, 0.45], [6, 7, 52, 54, 0.75], [17, 19, 51, 55, 0.5]
+    ];
+    const hlAt = (r, c) => { for (const h of hls) if (r >= h[0] && r <= h[1] && c >= h[2] && c <= h[3]) return h[4]; return 0; };
+    const dots = [];
+    land.forEach((ranges, r) => ranges.forEach(rg => {
+      for (let c = rg[0]; c <= rg[1]; c++) {
+        const o = hlAt(r, c);
+        dots.push(React.createElement('circle', {
+          key: r + '-' + c, cx: 6 + c * 9.9, cy: 8 + r * 9.3, r: 2.7,
+          fill: o ? 'var(--color-accent)' : 'var(--color-border)', opacity: o ? 0.35 + o * 0.65 : 0.75
+        }));
+      }
+    }));
+    const rtVals = Array.from({ length: 30 }, (_, i) => 2 + Math.round((Math.sin(i * 1.7) + 1) * 2.4 + ((i * 13) % 3)));
+    const rtBars = rtVals.map((v, i) => React.createElement('rect', {
+      key: i, x: i * 10, width: 7, y: 68 - v * 7, height: v * 7, rx: 1.5,
+      fill: 'var(--color-accent)', opacity: i === 29 ? 1 : 0.45 + (i / 29) * 0.4
+    }));
+    const EVENTS = [
+      { id: 'project_link_clicked', total: 1284, uniq: 1050, conv: '12.8%', delta: '+18%',
+        pages: [['/projects', 812], ['/', 296], ['/projects/kawaii-ui', 176]], sources: [['Direct', 490], ['GitHub', 310], ['Google', 250]] },
+      { id: 'github_link_clicked', total: 918, uniq: 812, conv: '9.9%', delta: '+11%',
+        pages: [['/projects', 502], ['/about', 214], ['/', 202]], sources: [['Direct', 402], ['Hacker News', 286], ['Google', 230]] },
+      { id: 'resume_downloaded', total: 342, uniq: 338, conv: '4.1%', delta: '+6%',
+        pages: [['/about', 296], ['/', 46]], sources: [['Direct', 180], ['LinkedIn', 98], ['Google', 64]] },
+      { id: 'theme_changed', total: 296, uniq: 244, conv: '3.0%', delta: '−2%',
+        pages: [['/', 168], ['/blog', 84], ['/projects', 44]], sources: [['Direct', 202], ['Google', 94]] },
+      { id: 'blog_post_shared', total: 158, uniq: 151, conv: '1.9%', delta: '+24%',
+        pages: [['/blog/shipping-kawaii-ui', 112], ['/blog/why-i-left-big-analytics', 46]], sources: [['Direct', 88], ['Reddit', 70]] }
+    ];
+    const evSpark = i => this.sparkD(Array.from({ length: 14 }, (_, k) => 3 + ((k * (i + 3) * 7) % 9) + k * 0.4), 90, 24);
+    const selEvent = st.eventSel ? EVENTS.find(e => e.id === st.eventSel) : null;
+    const evSeries = this.visitors.map((v, i) => Math.round(v * 0.14 * (0.7 + ((i * 11) % 6) / 10)));
+    const evMax = Math.max(...evSeries) * 1.1;
+    const evPts = this.linePts(evSeries, 8, 752, 8, 112, evMax);
+    const GOALS = [
+      { name: 'Visited /projects', type: 'Page visit', conv: 2140, rate: '26.1%' },
+      { name: 'Clicked GitHub', type: 'Event', conv: 918, rate: '11.2%' },
+      { name: 'Downloaded résumé', type: 'Download', conv: 342, rate: '4.2%' },
+      { name: 'Submitted contact form', type: 'Event', conv: 121, rate: '1.5%' }
+    ];
+    const GOAL_TYPES = [
+      ['page', 'Page visit', 'A visit reaches a specific page.'],
+      ['event', 'Custom event', 'A mochi.event() call fires.'],
+      ['outbound', 'Outbound link', 'A click leaves your site.'],
+      ['download', 'File download', 'A file link is downloaded.']
+    ];
+    const targetByType = {
+      page: ['Page path', '/projects'], event: ['Event name', 'github_link_clicked'],
+      outbound: ['Link URL contains', 'github.com'], download: ['File path ends with', '.pdf']
+    };
+    const SITES = [
+      { name: 'hazeliscoding', domain: 'hazeliscoding.com', views: '12,842', active: '3 active now', tone: 'success', status: 'Active', f: 1 },
+      { name: 'kawaii-ui', domain: 'kawaii-ui.dev', views: '4,281', active: '1 active now', tone: 'success', status: 'Active', f: 0.6 },
+      { name: 'portfolio', domain: 'portfolio.hazel.dev', views: '1,204', active: 'Quiet right now', tone: 'success', status: 'Active', f: 0.3 },
+      { name: 'mochi-demo', domain: 'mochi-demo.dev', views: '—', active: 'No visits yet', tone: 'warning', status: 'Waiting for data', f: 0 }
+    ];
+    const siteSpark = f => f === 0 ? 'M2 29L138 29' : this.sparkD(this.visitors.filter((_, i) => i % 2 === 0).map(v => v * f), 140, 32);
+    const LT = String.fromCharCode(60);
+    const SITE_TAG = LT + 'script defer src="https://mochi.example/script.js" data-site="MC-7F3K2">' + LT + '/script>';
+    const FW = {
+      'HTML': ['index.html', '<!-- Just before ' + LT + '/head> -->\n' + SITE_TAG],
+      'React': ['public/index.html', '<!-- Vite / CRA: add to the host page -->\n' + SITE_TAG],
+      'Angular': ['src/index.html', SITE_TAG],
+      'Vue': ['index.html', SITE_TAG],
+      'Next.js': ['app/layout.tsx', 'import Script from "next/script";\n\n// inside ' + LT + 'body>\n' + LT + 'Script\n  src="https://mochi.example/script.js"\n  data-site="MC-7F3K2"\n  strategy="afterInteractive"\n/>'],
+      'Astro': ['src/layouts/Layout.astro', LT + 'script defer is:inline\n  src="https://mochi.example/script.js"\n  data-site="MC-7F3K2">' + LT + '/script>']
+    };
+    const stepState = n => {
+      const done = st.addStep > n, cur = st.addStep === n;
+      return {
+        n: done ? '✓' : String(n), label: ['Website details', 'Install snippet', 'Verify'][n - 1],
+        bg: done || cur ? 'var(--color-accent)' : 'var(--color-surface)',
+        fg: done || cur ? 'var(--color-on-accent)' : 'var(--color-text-secondary)',
+        border: done || cur ? 'var(--color-accent)' : 'var(--color-border)',
+        labelColor: cur ? 'var(--color-text-primary)' : 'var(--color-text-secondary)'
+      };
+    };
+    const PRIV = [
+      ['No cookies', 'Nothing is stored on your visitors\u2019 devices.'],
+      ['No fingerprinting', 'No canvas, font, or hardware probing.'],
+      ['No cross-site tracking', 'What happens on your site stays on your site.'],
+      ['No advertising profiles', 'Your data is never sold or shared.'],
+      ['No session replay', 'Mochi never records what visitors do.'],
+      ['No individual profiles', 'Visits are counted, people are not.']
+    ];
+    const COLLECTED = [
+      ['Page URL', 'the page that was viewed'], ['Referrer domain', 'where the visit came from'],
+      ['Country', 'derived from IP, then the IP is discarded'], ['Device class', 'desktop, mobile, or tablet'],
+      ['Browser & OS family', 'e.g. Firefox on Linux, no versions'], ['Custom events', 'names and counts you choose to send']
+    ];
+    const NOT_COLLECTED = [
+      ['IP addresses', 'used transiently, never written to disk'], ['Cookies or device IDs', 'no identifiers of any kind'],
+      ['Names, emails, accounts', 'no personal information'], ['Precise location', 'nothing below country level by default'],
+      ['Click paths per person', 'no individual timelines'], ['Anything cross-site', 'no shared profiles between websites']
+    ];
+    const RET = [
+      ['30 days', 'Rolling month of daily aggregates.'], ['90 days', 'A quarter of history.'],
+      ['1 year', 'Recommended for year-over-year trends.'], ['Unlimited aggregates', 'Daily totals forever, still nothing personal.']
+    ];
+    const DSns = window.TrellisDesignSystem_c56627 || {};
+    return {
+      theme, density: p.density ?? 'comfortable', narrow, wide, mainRef: this.mainRef,
+      site: st.site, siteOptions: SITES.filter(s => s.f > 0).map(s => s.domain),
+      setSite: e => this.setState({ site: e.target.value }),
+      range: st.range, rangeOptions: ['Last 7 days', 'Last 30 days', 'Last 90 days', 'Year to date'],
+      setRange: e => this.setState({ range: e.target.value }),
+      compare: st.compare, compareOptions: ['vs previous period', 'vs same period last year', 'No comparison'],
+      setCompare: e => this.setState({ compare: e.target.value }),
+      compareLabel: st.compare === 'No comparison' ? 'no comparison' : st.compare,
+      themeLabel: theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme',
+      themeIcon: this.icon(theme === 'dark' ? 'sun' : 'moon'),
+      toggleTheme: () => this.setState({ themeOverride: theme === 'dark' ? 'light' : 'dark' }),
+      nav: st.nav, goNav: go,
+      navSections: [{ title: 'Analytics', items: navItems.map(mk) }, { title: 'Manage', items: manageItems.map(mk) }],
+      navTabs: navItems.concat(manageItems).map(a => ({ value: a[0], label: a[1] })),
+      isOverview: st.nav === 'overview', isRealtime: st.nav === 'realtime', isPages: st.nav === 'pages',
+      isSources: st.nav === 'sources', isGeo: st.nav === 'geo', isDevices: st.nav === 'devices',
+      isEvents: st.nav === 'events', isGoals: st.nav === 'goals', isSites: st.nav === 'sites',
+      isAddSite: st.nav === 'addsite', isPrivacy: st.nav === 'privacy', isSettings: st.nav === 'settings',
+      goPages: () => go('pages'), goSources: () => go('sources'), goGeo: () => go('geo'),
+      goAddSite: () => go('addsite'), goOverview: () => go('overview'),
+      ovLoading: ds === 'loading', ovFirstRun: ds === 'first-run', ovLive: ds !== 'loading' && ds !== 'first-run',
+      towerIcon: this.icon('radio-tower', 24),
+      installBtn: DSns.Button ? React.createElement(DSns.Button, { variant: 'primary', onClick: () => go('addsite') }, 'Show install instructions') : null,
+      metrics: [
+        { label: 'Visitors', value: '8,214', delta: '+12.4%', dir: 'up', tip: 'Unique visits in the period. A visit is a browsing session, not a persistent person.' },
+        { label: 'Pageviews', value: '15,630', delta: '+8.1%', dir: 'up', tip: 'Total pages loaded.' },
+        { label: 'Views per visitor', value: '1.9', delta: '+0.2', dir: 'up', tip: 'Pageviews divided by visitors.' },
+        { label: 'Bounce rate', value: '42%', delta: '−2.1 pt', dir: 'down', tip: 'Visits that left after a single page. Lower is usually better.' },
+        { label: 'Avg visit duration', value: '1m 46s', delta: '+6s', dir: 'up', tip: 'Median time between first and last pageview of a visit.' }
+      ],
+      metric: st.metric, setMetric: v => this.setState({ metric: v }),
+      metricItems: [{ value: 'visitors', label: 'Visitors' }, { value: 'pageviews', label: 'Pageviews' }, { value: 'sessions', label: 'Sessions' }],
+      chartAria: 'Daily ' + st.metric + ' over the last 30 days, trending up with a spike on August 19',
+      ovLine: this.lineD(pts), ovArea: this.areaD(pts, 214), ovPrev: this.lineD(ptsPrev),
+      spikeX: pts[18][0].toFixed(1), spikeY: pts[18][1].toFixed(1),
+      yMax: fmt(Math.round(yMaxRaw)), yMid: fmt(Math.round(yMaxRaw / 2)),
+      miniPageCols: [{ key: 'page', label: 'Page' }, { key: 'v', label: 'Visitors', numeric: true }, { key: 'pv', label: 'Pageviews', numeric: true }, { key: 'bounce', label: 'Bounce', numeric: true }],
+      miniPageRows: PAGES.slice(0, 5).map(pageRow),
+      openPageFromMini: r => this.setState({ nav: 'pages', pageSel: r.id }),
+      channelRows: [
+        { name: 'Direct', pct: 38, val: '3,121' }, { name: 'Search', pct: 29, val: '2,383' },
+        { name: 'Referral', pct: 24, val: '1,972' }, { name: 'Social', pct: 9, val: '738' }
+      ],
+      topSourceRows: [
+        { name: 'Google', val: '2,210' }, { name: 'GitHub', val: '842' }, { name: 'Reddit', val: '512' },
+        { name: 'Hacker News', val: '460' }, { name: 'Bing', val: '173' }
+      ],
+      countryRows: GEO.slice(0, 7).map(g => ({ name: g[0], val: fmt(g[1]), pct: g[2] })),
+      browserTop: [{ name: 'Chrome', pct: 46 }, { name: 'Firefox', pct: 21 }, { name: 'Safari', pct: 19 }],
+      osTop: [{ name: 'macOS', pct: 34 }, { name: 'Windows', pct: 31 }, { name: 'iOS', pct: 16 }],
+      rtQuiet: ds === 'quiet' || ds === 'first-run', rtLive: ds !== 'quiet' && ds !== 'first-run',
+      rtBars: React.createElement('g', null, rtBars),
+      rtPages: [
+        { name: '/', val: 6, pct: 100 }, { name: '/projects', val: 5, pct: 83 },
+        { name: '/blog/shipping-kawaii-ui', val: 4, pct: 67 }, { name: '/about', val: 3, pct: 50 }
+      ],
+      rtSources: [
+        { name: 'Direct', val: 8, pct: 100 }, { name: 'GitHub', val: 5, pct: 63 },
+        { name: 'Google', val: 4, pct: 50 }, { name: 'Reddit', val: 1, pct: 13 }
+      ],
+      rtCountries: [
+        { name: 'United States', val: 7 }, { name: 'Germany', val: 4 }, { name: 'Japan', val: 3 },
+        { name: 'United Kingdom', val: 2 }, { name: 'Other', val: 2 }
+      ],
+      noPageSel: !selPage, hasPageSel: !!selPage,
+      setQuery: e => this.setState({ query: e.target.value }),
+      sortOptions: Object.keys(sortKeys), sortLabel: Object.keys(sortKeys).find(k => sortKeys[k] === st.sortKey) || 'Visitors',
+      setSort: e => this.setState({ sortKey: sortKeys[e.target.value] || 'v' }),
+      flipSort: () => this.setState({ sortDir: -st.sortDir }),
+      sortIcon: this.icon(st.sortDir === -1 ? 'arrow-down-wide-narrow' : 'arrow-up-narrow-wide'),
+      pageCols: [
+        { key: 'page', label: 'Page' }, { key: 'v', label: 'Visitors', numeric: true }, { key: 'pv', label: 'Pageviews', numeric: true },
+        { key: 'vpv', label: 'Views / visitor', numeric: true }, { key: 'bounce', label: 'Bounce', numeric: true },
+        { key: 'dur', label: 'Avg duration', numeric: true }, { key: 'entry', label: 'Entries', numeric: true }, { key: 'exit', label: 'Exits', numeric: true }
+      ],
+      pageRows: sorted.map(pageRow),
+      openPage: r => this.setState({ pageSel: r.id }),
+      closePage: () => this.setState({ pageSel: null }),
+      backIcon: this.icon('arrow-left', 14),
+      selPageTitle: selPage ? selPage.title : '', selPageUrl: selPage ? selPage.id : '',
+      selPageMetrics: selPage ? [
+        { label: 'Visitors', value: fmt(selPage.v), delta: '+9%', dir: 'up' },
+        { label: 'Pageviews', value: fmt(selPage.pv), delta: '+7%', dir: 'up' },
+        { label: 'Bounce rate', value: selPage.bounce + '%', delta: '−1.2 pt', dir: 'down' },
+        { label: 'Avg duration', value: selPage.dur, delta: '+4s', dir: 'up' }
+      ] : [],
+      selPageLine: this.lineD(dPts), selPageArea: this.areaD(dPts, 112),
+      selPageRefs: [{ name: 'Direct', val: '38%' }, { name: 'google.com', val: '27%' }, { name: 'github.com', val: '19%' }, { name: 'reddit.com', val: '9%' }],
+      selPageDevices: [{ name: 'Desktop', val: '61%' }, { name: 'Mobile', val: '33%' }, { name: 'Tablet', val: '6%' }],
+      selPageCountries: [{ name: 'United States', val: '34%' }, { name: 'Germany', val: '15%' }, { name: 'United Kingdom', val: '11%' }, { name: 'Japan', val: '9%' }],
+      selPageEvents: [{ name: 'project_link_clicked', val: '412' }, { name: 'github_link_clicked', val: '186' }],
+      srcLegend: [
+        { name: 'Direct', total: '3,121', color: 'var(--color-accent)', dash: '0' },
+        { name: 'Search', total: '2,383', color: 'var(--color-info)', dash: '6 3' },
+        { name: 'Referral', total: '1,972', color: 'var(--color-warning)', dash: '2 3' },
+        { name: 'Social', total: '738', color: 'var(--color-text-secondary)', dash: '10 4' }
+      ],
+      srcLineDirect: chanLine(chan.direct, 3), srcLineSearch: chanLine(chan.search, 5),
+      srcLineReferral: chanLine(chan.referral, 7), srcLineSocial: chanLine(chan.social, 11),
+      srcTabs: [
+        { value: 'referrers', label: 'Referrers', count: 6 }, { value: 'search', label: 'Search engines', count: 3 },
+        { value: 'social', label: 'Social', count: 3 }, { value: 'campaigns', label: 'Campaigns & UTM', count: 3 }
+      ],
+      srcTab: st.srcTab, setSrcTab: v => this.setState({ srcTab: v }),
+      srcCols: SRC[st.srcTab].cols, srcRows: SRC[st.srcTab].rows,
+      mapDots: React.createElement('g', null, dots),
+      geoRows: GEO.map(g => ({ name: g[0], val: fmt(g[1]), pct: g[2] })),
+      usRegions: [
+        { name: 'California', val: '412' }, { name: 'New York', val: '268' }, { name: 'Texas', val: '214' },
+        { name: 'Washington', val: '176' }, { name: 'Massachusetts', val: '121' }, { name: 'Other regions', val: '1,679' }
+      ],
+      deviceRows: [
+        { name: 'Desktop', pct: 58, val: '4,764', color: 'var(--color-accent)' },
+        { name: 'Mobile', pct: 36, val: '2,957', color: 'var(--teal-300)' },
+        { name: 'Tablet', pct: 6, val: '493', color: 'var(--color-border)' }
+      ],
+      browserRows: [
+        { name: 'Chrome', pct: 46, val: '3,778' }, { name: 'Firefox', pct: 21, val: '1,725' },
+        { name: 'Safari', pct: 19, val: '1,561' }, { name: 'Edge', pct: 8, val: '657' },
+        { name: 'Arc', pct: 4, val: '329' }, { name: 'Other', pct: 2, val: '164' }
+      ],
+      osRows: [
+        { name: 'macOS', pct: 34, val: '2,793' }, { name: 'Windows', pct: 31, val: '2,546' },
+        { name: 'iOS', pct: 16, val: '1,314' }, { name: 'Android', pct: 12, val: '986' }, { name: 'Linux', pct: 7, val: '575' }
+      ],
+      noEventSel: !selEvent, hasEventSel: !!selEvent,
+      eventRows: EVENTS.map((e, i) => ({
+        name: e.id, total: fmt(e.total), uniq: fmt(e.uniq), conv: e.conv, spark: evSpark(i),
+        open: () => this.setState({ eventSel: e.id })
+      })),
+      closeEvent: () => this.setState({ eventSel: null }),
+      selEventName: selEvent ? selEvent.id : '',
+      selEventMetrics: selEvent ? [
+        { label: 'Total events', value: fmt(selEvent.total), delta: selEvent.delta, dir: selEvent.delta.indexOf('−') === 0 ? 'down' : 'up' },
+        { label: 'Unique visits', value: fmt(selEvent.uniq), delta: '+9%', dir: 'up' },
+        { label: 'Conversion rate', value: selEvent.conv, delta: '+0.4 pt', dir: 'up' }
+      ] : [],
+      selEventLine: this.lineD(evPts), selEventArea: this.areaD(evPts, 112),
+      selEventPages: selEvent ? selEvent.pages.map(x => ({ name: x[0], val: fmt(x[1]) })) : [],
+      selEventSources: selEvent ? selEvent.sources.map(x => ({ name: x[0], val: fmt(x[1]) })) : [],
+      selEventDevGeo: [{ name: 'Desktop', val: '64%' }, { name: 'Mobile', val: '36%' }, { name: 'United States', val: '38%' }, { name: 'Germany', val: '13%' }],
+      goalRows: GOALS.map((g, i) => ({ name: g.name, type: g.type, conv: fmt(g.conv), rate: g.rate, spark: evSpark(i + 2) })),
+      goalOpen: st.goalOpen, plusIcon: this.icon('plus', 14),
+      openGoalDialog: () => this.setState({ goalOpen: true }),
+      closeGoalDialog: () => this.setState({ goalOpen: false }),
+      goalTypes: GOAL_TYPES.map(t => ({
+        name: t[1], desc: t[2], checked: st.goalType === t[0],
+        pick: () => this.setState({ goalType: t[0] }),
+        border: st.goalType === t[0] ? 'var(--color-accent)' : 'var(--color-border)',
+        bg: st.goalType === t[0] ? 'var(--color-accent-subtle)' : 'var(--color-surface)'
+      })),
+      goalTargetLabel: targetByType[st.goalType][0], goalTargetHint: targetByType[st.goalType][1],
+      siteRows: SITES.map(s => ({
+        name: s.name, domain: s.domain, views: s.views, activeLabel: s.active, tone: s.tone, status: s.status,
+        spark: siteSpark(s.f),
+        open: () => s.f > 0 ? this.setState({ site: s.domain, nav: 'overview' }) : go('addsite')
+      })),
+      addS1: st.addStep === 1, addS2: st.addStep === 2, addS3: st.addStep === 3,
+      addSteps: [stepState(1), stepState(2), stepState(3)],
+      addNext1: () => this.setState({ addStep: 2 }), addNext2: () => this.setState({ addStep: 3 }),
+      addBack1: () => this.setState({ addStep: 1 }), addBack2: () => this.setState({ addStep: 2 }),
+      tz: st.tz, setTz: e => this.setState({ tz: e.target.value }),
+      tzOptions: ['(UTC−08:00) Pacific Time', '(UTC−05:00) Eastern Time', '(UTC+00:00) London', '(UTC+01:00) Berlin', '(UTC+09:00) Tokyo'],
+      fw: st.fw, setFw: v => this.setState({ fw: v }),
+      fwTabs: Object.keys(FW).map(k => ({ value: k, label: k })),
+      fwFile: FW[st.fw][0], fwCode: FW[st.fw][1], baseSnippet: SITE_TAG,
+      privChecks: PRIV.map(x => ({ name: x[0], desc: x[1] })),
+      collectedItems: COLLECTED.map(x => ({ name: x[0], desc: x[1] })),
+      notCollectedItems: NOT_COLLECTED.map(x => ({ name: x[0], desc: x[1] })),
+      retOptions: RET.map(x => ({
+        name: x[0], desc: x[1], checked: st.retention === x[0],
+        pick: () => this.setState({ retention: x[0], retSelect: x[0] })
+      })),
+      qsIgnore: st.qsIgnore, toggleQs: e => this.setState({ qsIgnore: e.target.checked }),
+      botFilter: st.botFilter, toggleBots: e => this.setState({ botFilter: e.target.checked }),
+      selfFilter: st.selfFilter, toggleSelf: e => this.setState({ selfFilter: e.target.checked }),
+      retSelect: st.retSelect, retSelectOptions: RET.map(x => x[0]),
+      setRetSelect: e => this.setState({ retSelect: e.target.value, retention: e.target.value }),
+      geoPrecision: st.geoPrecision, geoOptions: ['Country only', 'Country + region (thresholded)'],
+      setGeoPrecision: e => this.setState({ geoPrecision: e.target.value }),
+      downloadIcon: this.icon('download', 14),
+      delOpen: st.delOpen, openDel: () => this.setState({ delOpen: true }), closeDel: () => this.setState({ delOpen: false })
+    };
+  }
+}
+</script>
+</body>
+</html>
