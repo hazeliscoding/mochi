@@ -4,6 +4,9 @@ Mochi is a privacy-first web analytics platform: no cookies, no fingerprinting,
 aggregates only. Each version below is a shippable milestone with a clear
 "you can now…" outcome. Pre-1.0, minor versions may break APIs.
 
+Architecture decisions live in [docs/adr/](docs/adr/): the daily-salted visitor
+hash (0001), the API contracts (0002), and the storage/rollup model (0003).
+
 ## v0.1 — UI prototype ✅ (current)
 
 > You can now: click through the entire product on mock data.
@@ -17,15 +20,19 @@ aggregates only. Each version below is a shippable milestone with a clear
 - [x] Mock data layer (`analytics-data.service.ts`) ported 1:1 from the approved
       design — deliberately shaped as the seam for the future backend
 
-## v0.2 — Data in
+## v0.2 — Data in (in progress)
 
-> You can now: send a pageview to a running API and see it stored.
+> You can now: send a pageview to a running API and see it stored (in memory).
 
-- [ ] Scaffold .NET API project (`backend/`)
-- [ ] Event ingestion endpoint (`POST /api/collect`) — pageviews + custom events
-- [ ] Storage & aggregation model (sessions derived without cookies: rotating
-      salted hash of IP + UA, salt discarded daily)
-- [ ] Website CRUD (register site, generate site ID)
+- [x] Scaffold .NET API project (`backend/`, DDD: Domain / Application /
+      Infrastructure / Api, tests wired up)
+- [x] Event ingestion endpoint (`POST /api/collect`) — pageviews + custom
+      events, scrubbed per ADR 0002, day-salted visitor hash per ADR 0001
+- [x] Website CRUD (register site, generate site ID, snippet in response)
+- [ ] Postgres + EF Core (replace the in-memory adapters; schema per ADR 0003)
+- [ ] Rollup/purge job (sessionize closed days into `daily_*` tables, rotate
+      salt, purge raw events after 7 days)
+- [ ] Real user-agent parser and GeoIP lookup (current ones are placeholders)
 
 ## v0.3 — Tracking script
 
