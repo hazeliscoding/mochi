@@ -45,6 +45,12 @@ public sealed class InMemoryAnalyticsEventStore : IAnalyticsEventStore
     }
 
     /// <inheritdoc />
+    public Task<long> CountAsync(SiteId siteId, CancellationToken ct = default)
+    {
+        lock (_lock) return Task.FromResult((long)_events.Count(e => e.SiteId == siteId));
+    }
+
+    /// <inheritdoc />
     public Task PurgeBeforeAsync(DateTimeOffset cutoff, CancellationToken ct = default)
     {
         lock (_lock) _events.RemoveAll(e => e.OccurredAt < cutoff);

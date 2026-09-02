@@ -1,3 +1,5 @@
+using System.IO.Compression;
+using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Mochi.Api.Auth;
@@ -5,6 +7,7 @@ using Mochi.Api.Contracts;
 using Mochi.Application.Abstractions;
 using Mochi.Application.Auth;
 using Mochi.Application.Collect;
+using Mochi.Application.Privacy;
 using Mochi.Application.Rollups;
 using Mochi.Application.Sites;
 using Mochi.Application.Stats;
@@ -233,6 +236,43 @@ app.MapDelete("/api/sites/{id}/goals/{goalId}", async (string id, string goalId,
 app.MapGet("/api/sites/{id}/goals/stats", (string id, DateOnly? from, DateOnly? to, HttpContext ctx, ISiteRepository sites, IMembershipRepository members, IGoalRepository goals, StatsService svc, CancellationToken ct) =>
     WithSite(ctx, id, sites, members, ct, async siteId =>
         await svc.GoalStatsAsync(siteId, await goals.ListAsync(siteId, ct), From(from), To(to), ct)));
+
+// Privacy center (v0.6): live facts about what is held, and the full export.
+app.MapGet("/api/sites/{id}/privacy", (string id, HttpContext ctx, ISiteRepository sites, IMembershipRepository members, PrivacyService svc, CancellationToken ct) =>
+    WithMemberSite(ctx, id, sites, members, ct, async site =>
+    {
+        var s = await svc.SummaryAsync(site, ct);
+        return new
+        {
+            retention = SiteResponse.RetentionToWire(s.Retention),
+            rawEventLifetimeDays = s.RawEventLifetimeDays,
+            rawEventsHeld = s.RawEventsHeld,
+            oldestAggregateDate = s.OldestAggregateDate?.ToString("yyyy-MM-dd"),
+        };
+    }));
+
+// The export is a zip of CSVs, one per rollup table. Aggregates only; there
+// is no per-visitor data to export (ADR 0001).
+app.MapGet("/api/sites/{id}/export", async (string id, HttpContext ctx, ISiteRepository sites, IMembershipRepository members, ExportService svc, CancellationToken ct) =>
+{
+    if (!SiteId.TryParse(id, out var siteId)) return Results.NotFound();
+    var site = await sites.GetAsync(siteId, ct);
+    if (site is null) return Results.NotFound();
+    if (!await members.IsMemberAsync(SessionAuthMiddleware.CurrentUser(ctx)!.Id, siteId, ct)) return Results.NotFound();
+
+    var files = await svc.BuildAsync(site, ct);
+    using var buffer = new MemoryStream();
+    using (var zip = new ZipArchive(buffer, ZipArchiveMode.Create, leaveOpen: true))
+    {
+        foreach (var (name, content) in files)
+        {
+            await using var stream = zip.CreateEntry(name).Open();
+            await stream.WriteAsync(Encoding.UTF8.GetBytes(content), ct);
+        }
+    }
+
+    return Results.File(buffer.ToArray(), "application/zip", $"mochi-export-{siteId.Value}.zip");
+});
 
 // Manual rollup rerun per ADR 0003. Session required by the middleware;
 // additionally admin-only (ADR 0004). The endpoint's existence is public

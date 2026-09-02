@@ -69,6 +69,8 @@ public static class DependencyInjection
         services.AddScoped<RegisterSiteHandler>();
         services.AddScoped<RollupJob>();
         services.AddScoped<StatsService>();
+        services.AddScoped<Application.Privacy.PrivacyService>();
+        services.AddScoped<Application.Privacy.ExportService>();
         services.AddHostedService<DailyRollupHostedService>();
         return services;
     }

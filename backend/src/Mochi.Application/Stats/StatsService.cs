@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Mochi.Application.Abstractions;
 using Mochi.Application.Rollups;
 using Mochi.Domain.Collection;
@@ -49,7 +49,7 @@ public sealed class StatsService(IRollupReader rollups, IAnalyticsEventStore eve
     /// <summary>Pages table rows, most viewed first.</summary>
     public async Task<IReadOnlyList<PageStatsRow>> PagesAsync(SiteId siteId, DateOnly from, DateOnly to, CancellationToken ct = default)
     {
-        var rows = new List<DailyPageRow>(await rollups.PagesAsync(siteId, from, to, ct));
+        var rows = new List<DailyPageRow>((await rollups.PagesAsync(siteId, from, to, ct)).Select(d => d.Row));
         if (await TodayBatchAsync(siteId, from, to, ct) is { } today) rows.AddRange(today.Pages);
 
         return rows
@@ -74,7 +74,7 @@ public sealed class StatsService(IRollupReader rollups, IAnalyticsEventStore eve
     /// <summary>Source rows for one tab: channels, referrers, search, social or campaigns.</summary>
     public async Task<IReadOnlyList<CountRow>> SourcesAsync(SiteId siteId, DateOnly from, DateOnly to, string group, CancellationToken ct = default)
     {
-        var rows = new List<DailySourceRow>(await rollups.SourcesAsync(siteId, from, to, ct));
+        var rows = new List<DailySourceRow>((await rollups.SourcesAsync(siteId, from, to, ct)).Select(d => d.Row));
         if (await TodayBatchAsync(siteId, from, to, ct) is { } today) rows.AddRange(today.Sources);
 
         IEnumerable<(string Name, int Visitors)> grouped = group switch
@@ -100,7 +100,7 @@ public sealed class StatsService(IRollupReader rollups, IAnalyticsEventStore eve
     /// <summary>Country rows, most visitors first.</summary>
     public async Task<IReadOnlyList<GeoStatsRow>> GeoAsync(SiteId siteId, DateOnly from, DateOnly to, CancellationToken ct = default)
     {
-        var rows = new List<DailyGeoRow>(await rollups.GeoAsync(siteId, from, to, ct));
+        var rows = new List<DailyGeoRow>((await rollups.GeoAsync(siteId, from, to, ct)).Select(d => d.Row));
         if (await TodayBatchAsync(siteId, from, to, ct) is { } today) rows.AddRange(today.Geo);
 
         var grouped = rows.GroupBy(r => r.Country).Select(g => (Code: g.Key, Visitors: g.Sum(r => r.Visitors)))
@@ -112,7 +112,7 @@ public sealed class StatsService(IRollupReader rollups, IAnalyticsEventStore eve
     /// <summary>Device class, browser and OS breakdowns.</summary>
     public async Task<DevicesResponse> DevicesAsync(SiteId siteId, DateOnly from, DateOnly to, CancellationToken ct = default)
     {
-        var rows = new List<DailyDeviceRow>(await rollups.DevicesAsync(siteId, from, to, ct));
+        var rows = new List<DailyDeviceRow>((await rollups.DevicesAsync(siteId, from, to, ct)).Select(d => d.Row));
         if (await TodayBatchAsync(siteId, from, to, ct) is { } today) rows.AddRange(today.Devices);
 
         return new DevicesResponse(
@@ -132,7 +132,7 @@ public sealed class StatsService(IRollupReader rollups, IAnalyticsEventStore eve
     /// <summary>Custom events with per-page and per-channel breakdowns.</summary>
     public async Task<IReadOnlyList<EventStatsRow>> EventsAsync(SiteId siteId, DateOnly from, DateOnly to, CancellationToken ct = default)
     {
-        var rows = new List<DailyEventRow>(await rollups.EventsAsync(siteId, from, to, ct));
+        var rows = new List<DailyEventRow>((await rollups.EventsAsync(siteId, from, to, ct)).Select(d => d.Row));
         if (await TodayBatchAsync(siteId, from, to, ct) is { } today) rows.AddRange(today.Events);
         var totalVisitors = (await SummaryForRangeAsync(siteId, from, to, ct)).Visitors;
 
@@ -202,8 +202,8 @@ public sealed class StatsService(IRollupReader rollups, IAnalyticsEventStore eve
     {
         if (goals.Count == 0) return [];
 
-        var pages = new List<DailyPageRow>(await rollups.PagesAsync(siteId, from, to, ct));
-        var eventRows = new List<DailyEventRow>(await rollups.EventsAsync(siteId, from, to, ct));
+        var pages = new List<DailyPageRow>((await rollups.PagesAsync(siteId, from, to, ct)).Select(d => d.Row));
+        var eventRows = new List<DailyEventRow>((await rollups.EventsAsync(siteId, from, to, ct)).Select(d => d.Row));
         if (await TodayBatchAsync(siteId, from, to, ct) is { } today)
         {
             pages.AddRange(today.Pages);
@@ -295,3 +295,4 @@ public sealed class StatsService(IRollupReader rollups, IAnalyticsEventStore eve
         }
     }
 }
+

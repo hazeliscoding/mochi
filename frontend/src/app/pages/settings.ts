@@ -72,8 +72,8 @@ import { StatusIndicator } from '../ui/status-indicator';
               <div>
                 <label class="tr-label" for="set-retention">Data retention</label>
                 <select id="set-retention" class="tr-select" (change)="retention.set(val($event))">
-                  @for (r of data.retentionWire; track r[1]) {
-                    <option [value]="r[1]" [selected]="r[1] === retention()">{{ r[0] }}</option>
+                  @for (r of data.retentionChoices; track r[0]) {
+                    <option [value]="r[0]" [selected]="r[0] === retention()">{{ r[1] }}</option>
                   }
                 </select>
               </div>
@@ -207,7 +207,6 @@ export class Settings {
         next: () => {
           this.saving.set(false);
           this.saved.set(true);
-          this.data.sitesRes.reload();
         },
         error: () => {
           this.saving.set(false);

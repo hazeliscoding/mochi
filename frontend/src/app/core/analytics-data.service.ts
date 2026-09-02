@@ -1,6 +1,6 @@
 import { HttpClient, httpResource } from '@angular/common/http';
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import {
   ApiCountRow,
   ApiDevices,
@@ -9,6 +9,7 @@ import {
   ApiGoal,
   ApiGoalStatsRow,
   ApiPageRow,
+  ApiPrivacy,
   ApiRealtime,
   ApiSite,
   ApiSiteListItem,
@@ -251,6 +252,10 @@ export class AnalyticsDataService {
     const { from, to } = this.period();
     return `/api/sites/${id}/goals/stats?from=${from}&to=${to}`;
   });
+  readonly privacyRes = httpResource<ApiPrivacy>(() => {
+    const id = this.siteId();
+    return id ? `/api/sites/${id}/privacy` : undefined;
+  });
 
   constructor() {
     // Select the first site once the list arrives, or after the current one is deleted.
@@ -417,8 +422,23 @@ export class AnalyticsDataService {
     return this.http.post<ApiSite>('/api/sites', body);
   }
 
+  /**
+   * Single update path for site settings; Settings and the Privacy center both
+   * go through here. Refreshes the site list and the privacy summary so the
+   * two pages never disagree on retention.
+   */
   updateSite(id: string, body: { name?: string; timezone?: string; retention?: string }): Observable<ApiSite> {
-    return this.http.put<ApiSite>(`/api/sites/${id}`, body);
+    return this.http.put<ApiSite>(`/api/sites/${id}`, body).pipe(
+      tap(() => {
+        this.sitesRes.reload();
+        this.privacyRes.reload();
+      }),
+    );
+  }
+
+  /** Same-origin URL for the full CSV export zip; the session cookie authorizes it. */
+  exportUrl(id: string): string {
+    return `/api/sites/${id}/export`;
   }
 
   deleteSite(id: string): Observable<void> {
@@ -448,19 +468,17 @@ export class AnalyticsDataService {
     ['(UTC+09:00) Tokyo', 'Asia/Tokyo'],
   ];
 
-  /** [display label, description] pairs shown on the Privacy center. */
-  readonly retentionOptions: [string, string][] = [
-    ['30 days', 'Rolling month of daily aggregates.'], ['90 days', 'A quarter of history.'],
-    ['1 year', 'Recommended for year-over-year trends.'], ['Unlimited aggregates', 'Daily totals forever, still nothing personal.'],
+  /** [wire value, display label, description] for the retention setting. */
+  readonly retentionChoices: [string, string, string][] = [
+    ['30d', '30 days', 'Rolling month of daily aggregates.'],
+    ['90d', '90 days', 'A quarter of history.'],
+    ['1y', '1 year', 'Recommended for year-over-year trends.'],
+    ['unlimited', 'Unlimited aggregates', 'Daily totals forever, still nothing personal.'],
   ];
 
-  /** [display label, wire value] pairs for the retention setting. */
-  readonly retentionWire: [string, string][] = [
-    ['30 days', '30d'],
-    ['90 days', '90d'],
-    ['1 year', '1y'],
-    ['Unlimited aggregates', 'unlimited'],
-  ];
+  retentionLabel(wire: string): string {
+    return this.retentionChoices.find(r => r[0] === wire)?.[1] ?? wire;
+  }
 
   // Goals: definitions joined with conversion stats for the selected period.
   readonly goals = computed<GoalStats[]>(() => {
@@ -521,7 +539,4 @@ export class AnalyticsDataService {
     ['Names, emails, accounts', 'no personal information'], ['Precise location', 'nothing below country level by default'],
     ['Click paths per person', 'no individual timelines'], ['Anything cross-site', 'no shared profiles between websites'],
   ];
-
-  /** Display-only mirror for the Privacy center radios; Settings saves the real value. */
-  readonly retention = signal('1 year');
 }

@@ -91,13 +91,18 @@ hash (0001), the API contracts (0002), and the storage/rollup model (0003).
 - [ ] Teams: invitations, editor/viewer roles (membership model is ready;
       needs email or invite-link infrastructure, candidate to defer past 1.0)
 
-## v0.6 — Privacy center, for real
+## v0.6 — Privacy center, for real ✅
 
 > You can now: point at actual behavior behind every privacy promise.
 
-- [ ] Configurable data retention with automatic purge
-- [ ] Data export (site owner)
-- [ ] Public privacy commitments page backed by actual behavior, not copy
+- [x] Configurable data retention with automatic purge (nightly job purges
+      rollups past the site's setting and raw events past 7 days; unit-tested)
+- [x] Data export: zip with a CSV per daily aggregate table plus goals, from
+      the Privacy Center's Export button
+- [x] Privacy page backed by actual behavior: a live "what Mochi holds right
+      now" card (raw events held, oldest aggregate, retention), retention
+      radios that persist, and the untrue "privacy thresholds" claim replaced
+      with honest day-scoped-hash copy
 
 ## v0.7 — Hardening
 

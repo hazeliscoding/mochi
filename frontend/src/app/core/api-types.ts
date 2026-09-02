@@ -100,6 +100,13 @@ export interface ApiGoalStatsRow {
   ratePct: number;
 }
 
+export interface ApiPrivacy {
+  retention: string;
+  rawEventLifetimeDays: number;
+  rawEventsHeld: number;
+  oldestAggregateDate: string | null;
+}
+
 export interface ApiRealtime {
   activeVisitors: number;
   pageviewsPerMinute: number[];

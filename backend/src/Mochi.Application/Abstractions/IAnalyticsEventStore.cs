@@ -18,6 +18,9 @@ public interface IAnalyticsEventStore
     /// <summary>All events for one site since <paramref name="since"/>. Serves the realtime view.</summary>
     Task<IReadOnlyCollection<AnalyticsEvent>> ReadRecentAsync(SiteId siteId, DateTimeOffset since, CancellationToken ct = default);
 
+    /// <summary>Raw events currently held for one site. Serves the privacy summary.</summary>
+    Task<long> CountAsync(SiteId siteId, CancellationToken ct = default);
+
     /// <summary>Deletes events older than <paramref name="cutoff"/> across all sites.</summary>
     Task PurgeBeforeAsync(DateTimeOffset cutoff, CancellationToken ct = default);
 

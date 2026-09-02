@@ -31,7 +31,7 @@ public sealed record SiteResponse(string Id, string Name, string Domain, string 
         site.Name,
         site.Domain,
         site.Timezone,
-        ToWire(site.Retention),
+        RetentionToWire(site.Retention),
         $"<script defer src=\"{snippetBaseUrl}/script.js\" data-site=\"{site.Id.Value}\"></script>");
 
     /// <summary>Parses the wire retention value. Returns null for unknown input.</summary>
@@ -44,7 +44,8 @@ public sealed record SiteResponse(string Id, string Name, string Domain, string 
         _ => null,
     };
 
-    private static string ToWire(RetentionPolicy retention) => retention switch
+    /// <summary>Maps a retention policy to its wire value.</summary>
+    public static string RetentionToWire(RetentionPolicy retention) => retention switch
     {
         RetentionPolicy.Days30 => "30d",
         RetentionPolicy.Days90 => "90d",
