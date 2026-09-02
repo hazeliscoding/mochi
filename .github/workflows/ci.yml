@@ -33,7 +33,7 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
-      - run: npx prettier --check "src/**/*.ts" "e2e/*.ts" "playwright.config.ts"
+      - run: npx prettier --check "src/**/*.ts" "e2e/*.ts" "shots/*.ts" "playwright.config.ts" "playwright.shots.config.ts"
       - run: npm run build
       - run: npm test
 

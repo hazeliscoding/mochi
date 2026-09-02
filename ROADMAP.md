@@ -121,14 +121,17 @@ hash (0001), the API contracts (0002), and the storage/rollup model (0003).
 > You can now: run Mochi yourself with one command, and visit the live
 > instance tracking hazeliscoding.com.
 
-- [ ] Deployment story (Docker compose: API + DB + static frontend)
-- [ ] Versioned releases with migration path for the database
-- [ ] Install & upgrade documentation
+- [x] Deployment story: multi-stage Dockerfile (one image, the API serves the
+      SPA and the snippet) + docker-compose with Postgres; verified end to end
+- [x] Install & upgrade documentation (README: compose one-liner, env table,
+      upgrade = pull + up, migrations apply on startup)
+- [x] Branding pass: logo/icon (SVG + PNG favicons + apple-touch-icon), SEO
+      meta and OpenGraph tags, light + dark screenshot grid incl. the Privacy
+      Center, full README in the house style (`npm run shots` regenerates)
+- [ ] Versioned releases with migration path for the database (tag + GitHub
+      release once the live instance is up)
 - [ ] Live deployment (Railway or similar: Dockerfile build, managed Postgres,
-      HTTPS): Mochi dogfooding itself on real traffic
-- [ ] Branding pass: logo/icon, screenshot grid (light + dark, incl. the
-      Privacy Center), full README in the house style with live URL and
-      one-command install (interim README exists until then)
+      HTTPS): Mochi dogfooding itself on hazeliscoding.dev / rozeangel.moe
 - [ ] Public-exposure prerequisites from the ADR open questions: collect
       rate limiting / Origin validation (ADR 0002), login rate limiting
       (ADR 0004), production `SnippetBaseUrl`, GeoLite2 database configured

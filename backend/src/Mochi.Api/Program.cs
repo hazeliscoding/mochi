@@ -285,6 +285,26 @@ app.MapPost("/api/admin/rollup/{date}", async (string date, HttpContext ctx, Rol
     return Results.Ok();
 });
 
+// In the self-hosted image the Angular bundle sits in wwwroot next to
+// script.js and the API serves it. Unmatched non-API routes fall back to the
+// SPA shell; unknown API routes stay 404. In development wwwroot has no
+// index.html and ng serve owns the frontend, so this never triggers.
+var spaIndex = Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "index.html");
+if (File.Exists(spaIndex))
+{
+    app.MapFallback(async ctx =>
+    {
+        if (ctx.Request.Path.StartsWithSegments("/api"))
+        {
+            ctx.Response.StatusCode = StatusCodes.Status404NotFound;
+            return;
+        }
+
+        ctx.Response.ContentType = "text/html";
+        await ctx.Response.SendFileAsync(spaIndex);
+    });
+}
+
 app.Run();
 
 /// <summary>Marker so WebApplicationFactory can host the app in integration tests.</summary>

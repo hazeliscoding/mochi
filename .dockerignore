@@ -1,0 +1,11 @@
+.git
+.github
+docs
+design-reference
+**/node_modules
+**/dist
+**/bin
+**/obj
+**/test-results
+**/playwright-report
+frontend/e2e/.auth

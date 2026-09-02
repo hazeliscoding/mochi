@@ -1,0 +1,30 @@
+services:
+  mochi:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      ConnectionStrings__Mochi: Host=db;Database=mochi;Username=mochi;Password=${POSTGRES_PASSWORD:-mochi}
+      # Public base URL used in the snippet shown to site owners. Set this to
+      # your real domain when exposing the instance.
+      Mochi__SnippetBaseUrl: ${MOCHI_BASE_URL:-http://localhost:8080}
+      # Optional: pin the first-run setup code instead of reading it from logs.
+      # MOCHI_SETUP_CODE: change-me
+      # Optional: country stats need a GeoLite2 database file mounted in.
+      # Mochi__GeoIpDatabase: /data/GeoLite2-Country.mmdb
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: mochi
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mochi}
+      POSTGRES_DB: mochi
+    volumes:
+      - mochi-db:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  mochi-db:
