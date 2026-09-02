@@ -118,6 +118,9 @@ hash (0001), the API contracts (0002), and the storage/rollup model (0003).
 - [ ] Install & upgrade documentation
 - [ ] Live deployment (Railway or similar: Dockerfile build, managed Postgres,
       HTTPS): Mochi dogfooding itself on real traffic
+- [ ] Branding pass: logo/icon, screenshot grid (light + dark, incl. the
+      Privacy Center), full README in the house style with live URL and
+      one-command install (interim README exists until then)
 - [ ] Public-exposure prerequisites from the ADR open questions: collect
       rate limiting / Origin validation (ADR 0002), login rate limiting
       (ADR 0004), production `SnippetBaseUrl`, GeoLite2 database configured
