@@ -64,3 +64,12 @@ public sealed record RealtimeDevices(int Desktop, int Mobile, int Tablet);
 
 /// <summary>Live numbers for the Websites list.</summary>
 public sealed record SiteOverview(long ViewsLast30d, int ActiveNow);
+
+/// <summary>One goal with its conversion numbers for a range.</summary>
+/// <param name="Id">Goal id.</param>
+/// <param name="Name">Display name.</param>
+/// <param name="Type">"page", "event", "outbound" or "download".</param>
+/// <param name="Target">The matched path or event name.</param>
+/// <param name="Conversions">Distinct converting visitors, summed over days.</param>
+/// <param name="RatePct">Conversions as a percentage of all visitors.</param>
+public sealed record GoalStatsRow(string Id, string Name, string Type, string Target, int Conversions, double RatePct);

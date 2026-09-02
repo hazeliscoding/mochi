@@ -6,6 +6,7 @@ using Mochi.Application.Collect;
 using Mochi.Application.Rollups;
 using Mochi.Application.Sites;
 using Mochi.Application.Stats;
+using Mochi.Domain.Goals;
 using Mochi.Domain.Sites;
 using Mochi.Infrastructure;
 using Mochi.Infrastructure.Persistence;
@@ -173,6 +174,34 @@ static async Task<IResult> WithSite<T>(string id, ISiteRepository sites, Cancell
     if (await sites.GetAsync(siteId, ct) is null) return Results.NotFound();
     return Results.Ok(await query(siteId));
 }
+
+// Goals (ADR 0002): CRUD plus conversion stats computed at query time, so a
+// new goal shows history immediately.
+app.MapPost("/api/sites/{id}/goals", async (string id, GoalRequest req, ISiteRepository sites, IGoalRepository goals, IClock clock, CancellationToken ct) =>
+{
+    if (!SiteId.TryParse(id, out var siteId) || await sites.GetAsync(siteId, ct) is null) return Results.NotFound();
+    var type = GoalResponse.ParseType(req.Type);
+    if (type is null || string.IsNullOrWhiteSpace(req.Name) || string.IsNullOrWhiteSpace(req.Target))
+        return Results.UnprocessableEntity("name, type and target are required");
+
+    var goal = Goal.Create(siteId, req.Name, type.Value, req.Target, clock.UtcNow);
+    await goals.AddAsync(goal, ct);
+    return Results.Created($"/api/sites/{id}/goals/{goal.Id}", GoalResponse.From(goal));
+});
+
+app.MapGet("/api/sites/{id}/goals", (string id, ISiteRepository sites, IGoalRepository goals, CancellationToken ct) =>
+    WithSite(id, sites, ct, async siteId => (await goals.ListAsync(siteId, ct)).Select(GoalResponse.From)));
+
+app.MapDelete("/api/sites/{id}/goals/{goalId}", async (string id, string goalId, IGoalRepository goals, CancellationToken ct) =>
+{
+    if (!SiteId.TryParse(id, out var siteId)) return Results.NotFound();
+    await goals.RemoveAsync(siteId, goalId, ct);
+    return Results.NoContent();
+});
+
+app.MapGet("/api/sites/{id}/goals/stats", (string id, DateOnly? from, DateOnly? to, ISiteRepository sites, IGoalRepository goals, StatsService svc, CancellationToken ct) =>
+    WithSite(id, sites, ct, async siteId =>
+        await svc.GoalStatsAsync(siteId, await goals.ListAsync(siteId, ct), From(from), To(to), ct)));
 
 // Manual rollup rerun per ADR 0003. Unauthenticated until v0.5, so keep the
 // API bound to localhost in the meantime.

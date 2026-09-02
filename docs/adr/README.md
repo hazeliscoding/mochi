@@ -10,6 +10,7 @@ a reversed decision gets a new ADR that links back.
 | [0001](0001-privacy-preserving-visitor-sessions.md) | Privacy-preserving visitor and session model | Proposed |
 | [0002](0002-api-contracts.md) | API contracts — ingestion, queries, site management | Proposed |
 | [0003](0003-storage-and-aggregation.md) | Storage, aggregation, and retention | Proposed |
+| [0004](0004-authentication-and-access.md) | Authentication and per-site access | Proposed |
 
 Reading order matters: 0001 defines the visitor hash that 0002's collect flow
 computes and 0003's schema stores.

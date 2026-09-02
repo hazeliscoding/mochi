@@ -2,6 +2,7 @@ using System.Globalization;
 using Mochi.Application.Abstractions;
 using Mochi.Application.Rollups;
 using Mochi.Domain.Collection;
+using Mochi.Domain.Goals;
 using Mochi.Domain.Sites;
 
 namespace Mochi.Application.Stats;
@@ -190,6 +191,34 @@ public sealed class StatsService(IRollupReader rollups, IAnalyticsEventStore eve
 
         static int DistinctVisitors(IEnumerable<AnalyticsEvent> evts, DeviceClass device)
             => evts.Where(e => e.DeviceClass == device).Select(e => e.Visitor).Distinct().Count();
+    }
+
+    /// <summary>
+    /// Goal conversions computed at query time by matching goal targets
+    /// against the page and event rollups (ADR 0003). New goals therefore
+    /// show history immediately.
+    /// </summary>
+    public async Task<IReadOnlyList<GoalStatsRow>> GoalStatsAsync(SiteId siteId, IReadOnlyList<Goal> goals, DateOnly from, DateOnly to, CancellationToken ct = default)
+    {
+        if (goals.Count == 0) return [];
+
+        var pages = new List<DailyPageRow>(await rollups.PagesAsync(siteId, from, to, ct));
+        var eventRows = new List<DailyEventRow>(await rollups.EventsAsync(siteId, from, to, ct));
+        if (await TodayBatchAsync(siteId, from, to, ct) is { } today)
+        {
+            pages.AddRange(today.Pages);
+            eventRows.AddRange(today.Events);
+        }
+
+        var totalVisitors = (await SummaryForRangeAsync(siteId, from, to, ct)).Visitors;
+
+        return [.. goals.Select(g =>
+        {
+            var conversions = g.Type == GoalType.Page
+                ? pages.Where(p => p.Path == g.Target).Sum(p => p.Visitors)
+                : eventRows.Where(e => e.EventName == g.Target).Sum(e => e.UniqueVisitors);
+            return new GoalStatsRow(g.Id, g.Name, g.Type.ToString().ToLowerInvariant(), g.Target, conversions, Pct(conversions, totalVisitors));
+        })];
     }
 
     /// <summary>Live numbers for one site in the Websites list.</summary>

@@ -39,6 +39,7 @@ public static class DependencyInjection
         if (string.IsNullOrWhiteSpace(connectionString))
         {
             services.AddSingleton<ISiteRepository, InMemorySiteRepository>();
+            services.AddSingleton<IGoalRepository, InMemoryGoalRepository>();
             services.AddSingleton<IAnalyticsEventStore, InMemoryAnalyticsEventStore>();
             services.AddSingleton<InMemoryRollupStore>();
             services.AddSingleton<IRollupStore>(sp => sp.GetRequiredService<InMemoryRollupStore>());
@@ -48,6 +49,7 @@ public static class DependencyInjection
         {
             services.AddDbContext<MochiDbContext>(o => o.UseNpgsql(connectionString, npgsql => npgsql.EnableRetryOnFailure()));
             services.AddScoped<ISiteRepository, EfSiteRepository>();
+            services.AddScoped<IGoalRepository, EfGoalRepository>();
             services.AddScoped<IAnalyticsEventStore, EfAnalyticsEventStore>();
             services.AddScoped<IRollupStore, EfRollupStore>();
             services.AddScoped<IRollupReader, EfRollupReader>();

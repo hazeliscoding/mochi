@@ -79,8 +79,11 @@ hash (0001), the API contracts (0002), and the storage/rollup model (0003).
 - [ ] Authentication (single user first, then teams)
 - [ ] Per-site access control
 - [ ] Onboarding flow: add site → verify snippet installed → first data
-- [ ] Goals stats endpoint (`GET …/goals/stats`) and wire the Goals page
-      (deferred from v0.4)
+- [x] Goals CRUD + stats endpoint (`GET …/goals/stats`, conversions computed
+      at query time so new goals show history immediately)
+- [ ] Wire the Goals page to the goals endpoints
+- [x] ADR 0004: authentication and access (cookie sessions, first-run setup
+      code, site membership model)
 
 ## v0.6 — Privacy center, for real
 
@@ -99,13 +102,19 @@ hash (0001), the API contracts (0002), and the storage/rollup model (0003).
 - [ ] E2E smoke via headless Chrome
 - [ ] CI pipeline (build, test, lint)
 
-## v1.0 — Self-hostable release
+## v1.0 — Self-hostable release, deployed for real
 
-> You can now: run Mochi yourself with one command and keep it running.
+> You can now: run Mochi yourself with one command, and visit the live
+> instance tracking hazeliscoding.com.
 
 - [ ] Deployment story (Docker compose: API + DB + static frontend)
 - [ ] Versioned releases with migration path for the database
 - [ ] Install & upgrade documentation
+- [ ] Live deployment (Railway or similar: Dockerfile build, managed Postgres,
+      HTTPS): Mochi dogfooding itself on real traffic
+- [ ] Public-exposure prerequisites from the ADR open questions: collect
+      rate limiting / Origin validation (ADR 0002), login rate limiting
+      (ADR 0004), production `SnippetBaseUrl`, GeoLite2 database configured
 
 ---
 
