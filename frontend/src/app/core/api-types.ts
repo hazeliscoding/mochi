@@ -77,6 +77,29 @@ export interface ApiEventRow {
   sources: ApiCountRow[];
 }
 
+export interface ApiAuthStatus {
+  needsSetup: boolean;
+  authenticated: boolean;
+  email: string | null;
+  isAdmin: boolean | null;
+}
+
+export interface ApiGoal {
+  id: string;
+  name: string;
+  type: string;
+  target: string;
+}
+
+export interface ApiGoalStatsRow {
+  id: string;
+  name: string;
+  type: string;
+  target: string;
+  conversions: number;
+  ratePct: number;
+}
+
 export interface ApiRealtime {
   activeVisitors: number;
   pageviewsPerMinute: number[];

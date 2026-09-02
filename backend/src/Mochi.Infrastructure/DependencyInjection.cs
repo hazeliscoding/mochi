@@ -6,6 +6,7 @@ using Mochi.Application.Collect;
 using Mochi.Application.Rollups;
 using Mochi.Application.Sites;
 using Mochi.Application.Stats;
+using Mochi.Infrastructure.Auth;
 using Mochi.Infrastructure.Collection;
 using Mochi.Infrastructure.InMemory;
 using Mochi.Infrastructure.Persistence;
@@ -40,6 +41,9 @@ public static class DependencyInjection
         {
             services.AddSingleton<ISiteRepository, InMemorySiteRepository>();
             services.AddSingleton<IGoalRepository, InMemoryGoalRepository>();
+            services.AddSingleton<IUserRepository, InMemoryUserRepository>();
+            services.AddSingleton<ISessionStore, InMemorySessionStore>();
+            services.AddSingleton<IMembershipRepository, InMemoryMembershipRepository>();
             services.AddSingleton<IAnalyticsEventStore, InMemoryAnalyticsEventStore>();
             services.AddSingleton<InMemoryRollupStore>();
             services.AddSingleton<IRollupStore>(sp => sp.GetRequiredService<InMemoryRollupStore>());
@@ -50,11 +54,17 @@ public static class DependencyInjection
             services.AddDbContext<MochiDbContext>(o => o.UseNpgsql(connectionString, npgsql => npgsql.EnableRetryOnFailure()));
             services.AddScoped<ISiteRepository, EfSiteRepository>();
             services.AddScoped<IGoalRepository, EfGoalRepository>();
+            services.AddScoped<IUserRepository, EfUserRepository>();
+            services.AddScoped<ISessionStore, EfSessionStore>();
+            services.AddScoped<IMembershipRepository, EfMembershipRepository>();
             services.AddScoped<IAnalyticsEventStore, EfAnalyticsEventStore>();
             services.AddScoped<IRollupStore, EfRollupStore>();
             services.AddScoped<IRollupReader, EfRollupReader>();
         }
 
+        services.AddSingleton<IPasswordHasher, IdentityPasswordHasher>();
+        services.AddSingleton<ISetupCodeProvider, SetupCodeProvider>();
+        services.AddScoped<Application.Auth.AuthService>();
         services.AddScoped<CollectHandler>();
         services.AddScoped<RegisterSiteHandler>();
         services.AddScoped<RollupJob>();

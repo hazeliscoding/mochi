@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Mochi.Domain.Accounts;
 using Mochi.Domain.Collection;
 using Mochi.Domain.Goals;
 using Mochi.Domain.Sites;
@@ -17,6 +18,15 @@ public sealed class MochiDbContext(DbContextOptions<MochiDbContext> options) : D
 
     /// <summary>Conversion goals.</summary>
     public DbSet<Goal> Goals => Set<Goal>();
+
+    /// <summary>Dashboard accounts.</summary>
+    public DbSet<User> Users => Set<User>();
+
+    /// <summary>Dashboard sessions, token hashes only.</summary>
+    public DbSet<Session> Sessions => Set<Session>();
+
+    /// <summary>User-to-site memberships.</summary>
+    public DbSet<SiteMembership> Memberships => Set<SiteMembership>();
 
     internal DbSet<SiteStatsRow> SiteStats => Set<SiteStatsRow>();
     internal DbSet<PageRow> PageRows => Set<PageRow>();
@@ -81,6 +91,42 @@ public sealed class MochiDbContext(DbContextOptions<MochiDbContext> options) : D
             e.Property(x => x.Type).HasColumnName("type").HasConversion<short>();
             e.Property(x => x.Target).HasColumnName("target");
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
+            e.HasOne<Site>().WithMany().HasForeignKey(x => x.SiteId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<User>(e =>
+        {
+            e.ToTable("users");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.Email).HasColumnName("email");
+            e.HasIndex(x => x.Email).IsUnique();
+            e.Property(x => x.PasswordHash).HasColumnName("password_hash");
+            e.Property(x => x.IsAdmin).HasColumnName("is_admin");
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+        });
+
+        b.Entity<Session>(e =>
+        {
+            e.ToTable("sessions");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.UserId).HasColumnName("user_id");
+            e.Property(x => x.TokenHash).HasColumnName("token_hash");
+            e.HasIndex(x => x.TokenHash).IsUnique();
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+            e.Property(x => x.LastSeenAt).HasColumnName("last_seen_at");
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<SiteMembership>(e =>
+        {
+            e.ToTable("site_users");
+            e.HasKey(x => new { x.UserId, x.SiteId });
+            e.Property(x => x.UserId).HasColumnName("user_id");
+            e.Property(x => x.SiteId).HasColumnName("site_id").HasConversion(SiteIdConverter).HasMaxLength(8);
+            e.Property(x => x.Role).HasColumnName("role").HasConversion<short>();
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne<Site>().WithMany().HasForeignKey(x => x.SiteId).OnDelete(DeleteBehavior.Cascade);
         });
 

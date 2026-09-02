@@ -1,11 +1,14 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Mochi.Api.Auth;
 using Mochi.Api.Contracts;
 using Mochi.Application.Abstractions;
+using Mochi.Application.Auth;
 using Mochi.Application.Collect;
 using Mochi.Application.Rollups;
 using Mochi.Application.Sites;
 using Mochi.Application.Stats;
+using Mochi.Domain.Accounts;
 using Mochi.Domain.Goals;
 using Mochi.Domain.Sites;
 using Mochi.Infrastructure;
@@ -36,6 +39,16 @@ if (!string.IsNullOrWhiteSpace(app.Configuration.GetConnectionString("Mochi")))
     }
 }
 
+// Print the first-run setup code while setup is still open (ADR 0004).
+using (var scope = app.Services.CreateScope())
+{
+    if (await scope.ServiceProvider.GetRequiredService<AuthService>().NeedsSetupAsync())
+    {
+        app.Logger.LogInformation("No account exists yet. First-run setup code: {Code}",
+            scope.ServiceProvider.GetRequiredService<ISetupCodeProvider>().Code);
+    }
+}
+
 var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
 // Serves wwwroot/script.js, the embeddable tracking snippet. Cross-origin by
@@ -46,10 +59,16 @@ app.UseStaticFiles(new StaticFileOptions
     OnPrepareResponse = ctx => ctx.Context.Response.Headers.CacheControl = "public, max-age=86400",
 });
 
+// Session and CSRF checks for everything under /api except collect and auth.
+app.UseMiddleware<SessionAuthMiddleware>();
+
+app.MapAuth();
+
 // Ingestion. Body is text/plain JSON so browsers skip the CORS preflight.
 // Do not "fix" the content type; every analytics vendor does this (ADR 0002).
 // Invalid-but-parseable payloads still get 202 so probes and blockers learn
 // nothing; drop reasons go to the log only. Malformed JSON is the one 400.
+// Never authenticated (ADR 0004).
 app.MapPost("/api/collect", async (HttpContext http, CollectHandler handler, ILogger<Program> log, CancellationToken ct) =>
 {
     http.Response.Headers.AccessControlAllowOrigin = "*";
@@ -82,23 +101,26 @@ app.MapPost("/api/collect", async (HttpContext http, CollectHandler handler, ILo
     return Results.Accepted();
 });
 
-// Site management. Dashboard-only; auth arrives in v0.5, so bind to localhost
-// until then.
+// Site management. All endpoints below run behind the session middleware;
+// membership decides which sites a user can even see (ADR 0004: anonymous
+// gets 401 from the middleware, a non-member gets 404, never 403).
 var snippetBaseUrl = app.Configuration["Mochi:SnippetBaseUrl"] ?? "http://localhost:5000";
 
-app.MapPost("/api/sites", async (SiteRequest req, RegisterSiteHandler handler, CancellationToken ct) =>
+app.MapPost("/api/sites", async (SiteRequest req, HttpContext ctx, RegisterSiteHandler handler, IMembershipRepository members, CancellationToken ct) =>
 {
     if (string.IsNullOrWhiteSpace(req.Name) || string.IsNullOrWhiteSpace(req.Domain) || string.IsNullOrWhiteSpace(req.Timezone))
         return Results.UnprocessableEntity("name, domain and timezone are required");
 
     var site = await handler.HandleAsync(req.Name, req.Domain, req.Timezone, ct);
+    await members.AddAsync(new SiteMembership(SessionAuthMiddleware.CurrentUser(ctx)!.Id, site.Id, SiteRole.Owner), ct);
     return Results.Created($"/api/sites/{site.Id.Value}", SiteResponse.From(site, snippetBaseUrl));
 });
 
-app.MapGet("/api/sites", async (ISiteRepository sites, StatsService stats, CancellationToken ct) =>
+app.MapGet("/api/sites", async (HttpContext ctx, ISiteRepository sites, IMembershipRepository members, StatsService stats, CancellationToken ct) =>
 {
+    var mine = (await members.ListSiteIdsAsync(SessionAuthMiddleware.CurrentUser(ctx)!.Id, ct)).ToHashSet();
     var items = new List<SiteListItem>();
-    foreach (var s in await sites.ListAsync(ct))
+    foreach (var s in (await sites.ListAsync(ct)).Where(s => mine.Contains(s.Id)))
     {
         var o = await stats.OverviewAsync(s.Id, ct);
         items.Add(new SiteListItem(SiteResponse.From(s, snippetBaseUrl), o.ViewsLast30d, o.ActiveNow, o.ViewsLast30d > 0 ? "active" : "waiting"));
@@ -107,30 +129,24 @@ app.MapGet("/api/sites", async (ISiteRepository sites, StatsService stats, Cance
     return Results.Ok(items);
 });
 
-app.MapGet("/api/sites/{id}", async (string id, ISiteRepository sites, CancellationToken ct) =>
-{
-    if (!SiteId.TryParse(id, out var siteId)) return Results.NotFound();
-    var site = await sites.GetAsync(siteId, ct);
-    return site is null ? Results.NotFound() : Results.Ok(SiteResponse.From(site, snippetBaseUrl));
-});
+app.MapGet("/api/sites/{id}", (string id, HttpContext ctx, ISiteRepository sites, IMembershipRepository members, CancellationToken ct) =>
+    WithMemberSite(ctx, id, sites, members, ct, site => Task.FromResult(SiteResponse.From(site, snippetBaseUrl))));
 
-app.MapPut("/api/sites/{id}", async (string id, SiteRequest req, ISiteRepository sites, CancellationToken ct) =>
-{
-    if (!SiteId.TryParse(id, out var siteId)) return Results.NotFound();
-    var site = await sites.GetAsync(siteId, ct);
-    if (site is null) return Results.NotFound();
-
-    var retention = SiteResponse.ParseRetention(req.Retention) ?? site.Retention;
-    site.UpdateSettings(req.Name ?? site.Name, req.Timezone ?? site.Timezone, retention);
-    await sites.UpdateAsync(site, ct);
-    return Results.Ok(SiteResponse.From(site, snippetBaseUrl));
-});
+app.MapPut("/api/sites/{id}", (string id, SiteRequest req, HttpContext ctx, ISiteRepository sites, IMembershipRepository members, CancellationToken ct) =>
+    WithMemberSite(ctx, id, sites, members, ct, async site =>
+    {
+        var retention = SiteResponse.ParseRetention(req.Retention) ?? site.Retention;
+        site.UpdateSettings(req.Name ?? site.Name, req.Timezone ?? site.Timezone, retention);
+        await sites.UpdateAsync(site, ct);
+        return SiteResponse.From(site, snippetBaseUrl);
+    }));
 
 // Deleting a site deletes all its data immediately: raw events, rollups, then
 // the site row. The Privacy Center promise depends on this (ADR 0002).
-app.MapDelete("/api/sites/{id}", async (string id, ISiteRepository sites, IAnalyticsEventStore events, IRollupStore rollups, CancellationToken ct) =>
+app.MapDelete("/api/sites/{id}", async (string id, HttpContext ctx, ISiteRepository sites, IMembershipRepository members, IAnalyticsEventStore events, IRollupStore rollups, CancellationToken ct) =>
 {
     if (!SiteId.TryParse(id, out var siteId)) return Results.NotFound();
+    if (!await members.IsMemberAsync(SessionAuthMiddleware.CurrentUser(ctx)!.Id, siteId, ct)) return Results.NotFound();
     await events.PurgeSiteAsync(siteId, ct);
     await rollups.PurgeSiteAsync(siteId, ct);
     await sites.RemoveAsync(siteId, ct);
@@ -141,45 +157,59 @@ app.MapDelete("/api/sites/{id}", async (string id, ISiteRepository sites, IAnaly
 // last 30 days; compare is "previous", "year" or absent.
 var stats = app.MapGroup("/api/sites/{id}/stats");
 
-stats.MapGet("/summary", (string id, DateOnly? from, DateOnly? to, string? compare, StatsService svc, ISiteRepository sites, CancellationToken ct) =>
-    WithSite(id, sites, ct, siteId => svc.SummaryAsync(siteId, From(from), To(to), compare, ct)));
+stats.MapGet("/summary", (string id, DateOnly? from, DateOnly? to, string? compare, HttpContext ctx, StatsService svc, ISiteRepository sites, IMembershipRepository members, CancellationToken ct) =>
+    WithSite(ctx, id, sites, members, ct, siteId => svc.SummaryAsync(siteId, From(from), To(to), compare, ct)));
 
-stats.MapGet("/timeseries", (string id, DateOnly? from, DateOnly? to, string? metric, string? compare, StatsService svc, ISiteRepository sites, CancellationToken ct) =>
-    WithSite(id, sites, ct, siteId => svc.TimeseriesAsync(siteId, From(from), To(to), metric ?? "visitors", compare, ct)));
+stats.MapGet("/timeseries", (string id, DateOnly? from, DateOnly? to, string? metric, string? compare, HttpContext ctx, StatsService svc, ISiteRepository sites, IMembershipRepository members, CancellationToken ct) =>
+    WithSite(ctx, id, sites, members, ct, siteId => svc.TimeseriesAsync(siteId, From(from), To(to), metric ?? "visitors", compare, ct)));
 
-stats.MapGet("/pages", (string id, DateOnly? from, DateOnly? to, StatsService svc, ISiteRepository sites, CancellationToken ct) =>
-    WithSite(id, sites, ct, siteId => svc.PagesAsync(siteId, From(from), To(to), ct)));
+stats.MapGet("/pages", (string id, DateOnly? from, DateOnly? to, HttpContext ctx, StatsService svc, ISiteRepository sites, IMembershipRepository members, CancellationToken ct) =>
+    WithSite(ctx, id, sites, members, ct, siteId => svc.PagesAsync(siteId, From(from), To(to), ct)));
 
-stats.MapGet("/sources", (string id, DateOnly? from, DateOnly? to, string? group, StatsService svc, ISiteRepository sites, CancellationToken ct) =>
-    WithSite(id, sites, ct, siteId => svc.SourcesAsync(siteId, From(from), To(to), group ?? "channels", ct)));
+stats.MapGet("/sources", (string id, DateOnly? from, DateOnly? to, string? group, HttpContext ctx, StatsService svc, ISiteRepository sites, IMembershipRepository members, CancellationToken ct) =>
+    WithSite(ctx, id, sites, members, ct, siteId => svc.SourcesAsync(siteId, From(from), To(to), group ?? "channels", ct)));
 
-stats.MapGet("/geo", (string id, DateOnly? from, DateOnly? to, StatsService svc, ISiteRepository sites, CancellationToken ct) =>
-    WithSite(id, sites, ct, siteId => svc.GeoAsync(siteId, From(from), To(to), ct)));
+stats.MapGet("/geo", (string id, DateOnly? from, DateOnly? to, HttpContext ctx, StatsService svc, ISiteRepository sites, IMembershipRepository members, CancellationToken ct) =>
+    WithSite(ctx, id, sites, members, ct, siteId => svc.GeoAsync(siteId, From(from), To(to), ct)));
 
-stats.MapGet("/devices", (string id, DateOnly? from, DateOnly? to, StatsService svc, ISiteRepository sites, CancellationToken ct) =>
-    WithSite(id, sites, ct, siteId => svc.DevicesAsync(siteId, From(from), To(to), ct)));
+stats.MapGet("/devices", (string id, DateOnly? from, DateOnly? to, HttpContext ctx, StatsService svc, ISiteRepository sites, IMembershipRepository members, CancellationToken ct) =>
+    WithSite(ctx, id, sites, members, ct, siteId => svc.DevicesAsync(siteId, From(from), To(to), ct)));
 
-stats.MapGet("/events", (string id, DateOnly? from, DateOnly? to, StatsService svc, ISiteRepository sites, CancellationToken ct) =>
-    WithSite(id, sites, ct, siteId => svc.EventsAsync(siteId, From(from), To(to), ct)));
+stats.MapGet("/events", (string id, DateOnly? from, DateOnly? to, HttpContext ctx, StatsService svc, ISiteRepository sites, IMembershipRepository members, CancellationToken ct) =>
+    WithSite(ctx, id, sites, members, ct, siteId => svc.EventsAsync(siteId, From(from), To(to), ct)));
 
-stats.MapGet("/realtime", (string id, StatsService svc, ISiteRepository sites, CancellationToken ct) =>
-    WithSite(id, sites, ct, siteId => svc.RealtimeAsync(siteId, ct)));
+stats.MapGet("/realtime", (string id, HttpContext ctx, StatsService svc, ISiteRepository sites, IMembershipRepository members, CancellationToken ct) =>
+    WithSite(ctx, id, sites, members, ct, siteId => svc.RealtimeAsync(siteId, ct)));
 
 static DateOnly From(DateOnly? from) => from ?? DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-29);
 static DateOnly To(DateOnly? to) => to ?? DateOnly.FromDateTime(DateTime.UtcNow);
 
-static async Task<IResult> WithSite<T>(string id, ISiteRepository sites, CancellationToken ct, Func<SiteId, Task<T>> query)
+// Parse, existence and membership in one place. Non-members get the same 404
+// as nonexistent sites so short public ids leak nothing (ADR 0004).
+static async Task<IResult> WithSite<T>(HttpContext ctx, string id, ISiteRepository sites, IMembershipRepository members, CancellationToken ct, Func<SiteId, Task<T>> query)
 {
     if (!SiteId.TryParse(id, out var siteId)) return Results.NotFound();
     if (await sites.GetAsync(siteId, ct) is null) return Results.NotFound();
+    if (!await members.IsMemberAsync(SessionAuthMiddleware.CurrentUser(ctx)!.Id, siteId, ct)) return Results.NotFound();
     return Results.Ok(await query(siteId));
+}
+
+// Same checks, but hands the loaded aggregate to the callback.
+static async Task<IResult> WithMemberSite<T>(HttpContext ctx, string id, ISiteRepository sites, IMembershipRepository members, CancellationToken ct, Func<Site, Task<T>> query)
+{
+    if (!SiteId.TryParse(id, out var siteId)) return Results.NotFound();
+    var site = await sites.GetAsync(siteId, ct);
+    if (site is null) return Results.NotFound();
+    if (!await members.IsMemberAsync(SessionAuthMiddleware.CurrentUser(ctx)!.Id, siteId, ct)) return Results.NotFound();
+    return Results.Ok(await query(site));
 }
 
 // Goals (ADR 0002): CRUD plus conversion stats computed at query time, so a
 // new goal shows history immediately.
-app.MapPost("/api/sites/{id}/goals", async (string id, GoalRequest req, ISiteRepository sites, IGoalRepository goals, IClock clock, CancellationToken ct) =>
+app.MapPost("/api/sites/{id}/goals", async (string id, GoalRequest req, HttpContext ctx, ISiteRepository sites, IMembershipRepository members, IGoalRepository goals, IClock clock, CancellationToken ct) =>
 {
     if (!SiteId.TryParse(id, out var siteId) || await sites.GetAsync(siteId, ct) is null) return Results.NotFound();
+    if (!await members.IsMemberAsync(SessionAuthMiddleware.CurrentUser(ctx)!.Id, siteId, ct)) return Results.NotFound();
     var type = GoalResponse.ParseType(req.Type);
     if (type is null || string.IsNullOrWhiteSpace(req.Name) || string.IsNullOrWhiteSpace(req.Target))
         return Results.UnprocessableEntity("name, type and target are required");
@@ -189,24 +219,27 @@ app.MapPost("/api/sites/{id}/goals", async (string id, GoalRequest req, ISiteRep
     return Results.Created($"/api/sites/{id}/goals/{goal.Id}", GoalResponse.From(goal));
 });
 
-app.MapGet("/api/sites/{id}/goals", (string id, ISiteRepository sites, IGoalRepository goals, CancellationToken ct) =>
-    WithSite(id, sites, ct, async siteId => (await goals.ListAsync(siteId, ct)).Select(GoalResponse.From)));
+app.MapGet("/api/sites/{id}/goals", (string id, HttpContext ctx, ISiteRepository sites, IMembershipRepository members, IGoalRepository goals, CancellationToken ct) =>
+    WithSite(ctx, id, sites, members, ct, async siteId => (await goals.ListAsync(siteId, ct)).Select(GoalResponse.From)));
 
-app.MapDelete("/api/sites/{id}/goals/{goalId}", async (string id, string goalId, IGoalRepository goals, CancellationToken ct) =>
+app.MapDelete("/api/sites/{id}/goals/{goalId}", async (string id, string goalId, HttpContext ctx, ISiteRepository sites, IMembershipRepository members, IGoalRepository goals, CancellationToken ct) =>
 {
     if (!SiteId.TryParse(id, out var siteId)) return Results.NotFound();
+    if (!await members.IsMemberAsync(SessionAuthMiddleware.CurrentUser(ctx)!.Id, siteId, ct)) return Results.NotFound();
     await goals.RemoveAsync(siteId, goalId, ct);
     return Results.NoContent();
 });
 
-app.MapGet("/api/sites/{id}/goals/stats", (string id, DateOnly? from, DateOnly? to, ISiteRepository sites, IGoalRepository goals, StatsService svc, CancellationToken ct) =>
-    WithSite(id, sites, ct, async siteId =>
+app.MapGet("/api/sites/{id}/goals/stats", (string id, DateOnly? from, DateOnly? to, HttpContext ctx, ISiteRepository sites, IMembershipRepository members, IGoalRepository goals, StatsService svc, CancellationToken ct) =>
+    WithSite(ctx, id, sites, members, ct, async siteId =>
         await svc.GoalStatsAsync(siteId, await goals.ListAsync(siteId, ct), From(from), To(to), ct)));
 
-// Manual rollup rerun per ADR 0003. Unauthenticated until v0.5, so keep the
-// API bound to localhost in the meantime.
-app.MapPost("/api/admin/rollup/{date}", async (string date, RollupJob job, CancellationToken ct) =>
+// Manual rollup rerun per ADR 0003. Session required by the middleware;
+// additionally admin-only (ADR 0004). The endpoint's existence is public
+// knowledge, so 403 is fine here.
+app.MapPost("/api/admin/rollup/{date}", async (string date, HttpContext ctx, RollupJob job, CancellationToken ct) =>
 {
+    if (!SessionAuthMiddleware.CurrentUser(ctx)!.IsAdmin) return Results.Forbid();
     if (!DateOnly.TryParseExact(date, "yyyy-MM-dd", out var day)) return Results.BadRequest("date must be yyyy-MM-dd");
     await job.RunForDayAsync(day, ct);
     return Results.Ok();

@@ -32,6 +32,10 @@
 .mo-split--lg{height:10px;border-radius:5px}
 .mo-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
 
+/* Auth pages: centered card outside the shell */
+.mo-auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--color-surface-canvas);color:var(--color-text-primary);font-family:var(--font-ui);font-size:14px}
+.mo-auth__card{width:100%;max-width:380px}
+
 /* Settings section heading */
 .mo-section-title{font:600 16px var(--font-display);padding-bottom:8px;border-bottom:1px solid var(--color-border);margin-bottom:16px}
 

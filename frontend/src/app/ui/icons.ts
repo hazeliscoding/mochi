@@ -20,4 +20,6 @@ export const ICONS: Record<string, string> = {
   "radio-tower": "<path d=\"M4.9 16.1C1 12.2 1 5.8 4.9 1.9\"></path><path d=\"M7.8 4.7a6.14 6.14 0 0 0-.8 7.5\"></path><circle cx=\"12\" cy=\"9\" r=\"2\"></circle><path d=\"M16.2 4.8c2 2 2.26 5.11.8 7.47\"></path><path d=\"M19.1 1.9a9.96 9.96 0 0 1 0 14.1\"></path><path d=\"M9.5 18h5\"></path><path d=\"m8 22 4-11 4 11\"></path>",
   "download": "<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"></path><polyline points=\"7 10 12 15 17 10\"></polyline><line x1=\"12\" x2=\"12\" y1=\"15\" y2=\"3\"></line>",
   "search": "<circle cx=\"11\" cy=\"11\" r=\"8\"></circle><path d=\"m21 21-4.3-4.3\"></path>",
+  "log-out": "<path d=\"M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4\"></path><polyline points=\"16 17 21 12 16 7\"></polyline><line x1=\"21\" x2=\"9\" y1=\"12\" y2=\"12\"></line>",
+  "trash-2": "<path d=\"M3 6h18\"></path><path d=\"M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6\"></path><path d=\"M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2\"></path><line x1=\"10\" x2=\"10\" y1=\"11\" y2=\"17\"></line><line x1=\"14\" x2=\"14\" y1=\"11\" y2=\"17\"></line>",
 };

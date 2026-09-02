@@ -6,6 +6,8 @@ import {
   ApiDevices,
   ApiEventRow,
   ApiGeoRow,
+  ApiGoal,
+  ApiGoalStatsRow,
   ApiPageRow,
   ApiRealtime,
   ApiSite,
@@ -60,8 +62,10 @@ export interface EventStats {
 }
 
 export interface GoalStats {
+  id: string;
   name: string;
   type: string;
+  target: string;
   conv: number;
   rate: string;
 }
@@ -236,6 +240,16 @@ export class AnalyticsDataService {
   readonly realtimeRes = httpResource<ApiRealtime>(() => {
     const id = this.siteId();
     return id ? `/api/sites/${id}/stats/realtime` : undefined;
+  });
+  readonly goalsRes = httpResource<ApiGoal[]>(() => {
+    const id = this.siteId();
+    return id ? `/api/sites/${id}/goals` : undefined;
+  });
+  readonly goalStatsRes = httpResource<ApiGoalStatsRow[]>(() => {
+    const id = this.siteId();
+    if (!id) return undefined;
+    const { from, to } = this.period();
+    return `/api/sites/${id}/goals/stats?from=${from}&to=${to}`;
   });
 
   constructor() {
@@ -448,13 +462,29 @@ export class AnalyticsDataService {
     ['Unlimited aggregates', 'unlimited'],
   ];
 
-  // Goals stay on mock data until the goals stats endpoint ships (backend has goal CRUD only).
-  readonly goals: GoalStats[] = [
-    { name: 'Visited /projects', type: 'Page visit', conv: 2140, rate: '26.1%' },
-    { name: 'Clicked GitHub', type: 'Event', conv: 918, rate: '11.2%' },
-    { name: 'Downloaded résumé', type: 'Download', conv: 342, rate: '4.2%' },
-    { name: 'Submitted contact form', type: 'Event', conv: 121, rate: '1.5%' },
-  ];
+  // Goals: definitions joined with conversion stats for the selected period.
+  readonly goals = computed<GoalStats[]>(() => {
+    const stats = new Map((this.goalStatsRes.value() ?? []).map(s => [s.id, s]));
+    return (this.goalsRes.value() ?? []).map(g => {
+      const s = stats.get(g.id);
+      return {
+        id: g.id,
+        name: g.name,
+        type: this.goalTypes.find(t => t[0] === g.type)?.[1] ?? g.type,
+        target: g.target,
+        conv: s?.conversions ?? 0,
+        rate: (s?.ratePct ?? 0).toFixed(1) + '%',
+      };
+    });
+  });
+
+  createGoal(siteId: string, body: { name: string; type: string; target: string }): Observable<ApiGoal> {
+    return this.http.post<ApiGoal>(`/api/sites/${siteId}/goals`, body);
+  }
+
+  deleteGoal(siteId: string, goalId: string): Observable<void> {
+    return this.http.delete<void>(`/api/sites/${siteId}/goals/${goalId}`);
+  }
 
   readonly goalTypes: [string, string, string][] = [
     ['page', 'Page visit', 'A visit reaches a specific page.'],

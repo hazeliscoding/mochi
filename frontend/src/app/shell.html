@@ -33,7 +33,10 @@
     >
       <mo-icon [name]="theme.theme() === 'dark' ? 'sun' : 'moon'" />
     </button>
-    <span class="tr-avatar" style="width:28px;height:28px" title="Hazel Okafor" aria-label="Hazel Okafor">HO</span>
+    <span class="tr-avatar" style="width:28px;height:28px" [title]="auth.email()" [attr.aria-label]="auth.email()">{{ initials() }}</span>
+    <button type="button" class="tr-btn tr-btn--ghost tr-btn--icon" aria-label="Log out" title="Log out" (click)="logout()">
+      <mo-icon name="log-out" />
+    </button>
   </header>
 
   <div class="mo-narrow-nav mo-narrow-only">

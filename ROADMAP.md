@@ -76,14 +76,20 @@ hash (0001), the API contracts (0002), and the storage/rollup model (0003).
 
 > You can now: log in, add several sites, and only see your own.
 
-- [ ] Authentication (single user first, then teams)
-- [ ] Per-site access control
-- [ ] Onboarding flow: add site → verify snippet installed → first data
+- [x] Authentication, single user (ADR 0004: server-side cookie sessions,
+      XSRF double-submit, PasswordHasher V3, first-run setup code printed to
+      the server log; login/setup pages, 401 redirect, header logout)
+- [x] Per-site access control (users/sites/site_users membership; anonymous
+      401, non-member 404; collect and script.js stay public)
+- [x] Onboarding flow: add site → snippet shown → verify checks site status
 - [x] Goals CRUD + stats endpoint (`GET …/goals/stats`, conversions computed
       at query time so new goals show history immediately)
-- [ ] Wire the Goals page to the goals endpoints
+- [x] Wire the Goals page to the goals endpoints (create dialog, delete with
+      confirm, range-reactive conversion stats)
 - [x] ADR 0004: authentication and access (cookie sessions, first-run setup
       code, site membership model)
+- [ ] Teams: invitations, editor/viewer roles (membership model is ready;
+      needs email or invite-link infrastructure, candidate to defer past 1.0)
 
 ## v0.6 — Privacy center, for real
 
