@@ -9,6 +9,13 @@ namespace Mochi.Api.Contracts;
 /// <param name="Retention">"30d", "90d", "1y" or "unlimited". Null keeps the current value.</param>
 public sealed record SiteRequest(string? Name, string? Domain, string? Timezone, string? Retention);
 
+/// <summary>One entry of GET /api/sites, with live numbers for the Websites page.</summary>
+/// <param name="Site">The site itself.</param>
+/// <param name="ViewsLast30d">Pageviews in the last 30 days including today.</param>
+/// <param name="ActiveNow">Distinct visitors in the last 5 minutes.</param>
+/// <param name="Status">"active" once traffic has been seen in the period, else "waiting".</param>
+public sealed record SiteListItem(SiteResponse Site, long ViewsLast30d, int ActiveNow, string Status);
+
 /// <summary>Site as returned by the sites endpoints.</summary>
 /// <param name="Id">Public site id.</param>
 /// <param name="Name">Display name.</param>

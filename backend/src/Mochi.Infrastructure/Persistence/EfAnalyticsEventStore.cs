@@ -26,6 +26,10 @@ public sealed class EfAnalyticsEventStore(MochiDbContext db) : IAnalyticsEventSt
     }
 
     /// <inheritdoc />
+    public async Task<IReadOnlyCollection<AnalyticsEvent>> ReadRecentAsync(SiteId siteId, DateTimeOffset since, CancellationToken ct = default)
+        => await db.Events.Where(e => e.SiteId == siteId && e.OccurredAt >= since).ToListAsync(ct);
+
+    /// <inheritdoc />
     public Task PurgeBeforeAsync(DateTimeOffset cutoff, CancellationToken ct = default)
         => db.Events.Where(e => e.OccurredAt < cutoff).ExecuteDeleteAsync(ct);
 

@@ -72,6 +72,7 @@ const GRID = 'minmax(200px,2fr) 110px 1fr 1fr 110px';
     </section>
   `,
 })
+// Still on mock data; wiring lands with the goals stats endpoint (backend ships goal CRUD only).
 export class Goals {
   protected readonly data = inject(AnalyticsDataService);
 

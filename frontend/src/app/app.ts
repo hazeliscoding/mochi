@@ -42,7 +42,7 @@ export class App {
 
   protected readonly allNav = [...this.analyticsNav, ...this.manageNav];
 
-  protected readonly siteOptions = this.data.sites.filter(s => s.f > 0).map(s => s.domain);
+  protected readonly siteOptions = this.data.siteOptions;
 
   constructor() {
     this.router.events.subscribe(e => {
@@ -52,7 +52,7 @@ export class App {
 
   protected onSelect(signalTarget: 'site' | 'range' | 'compare', e: Event): void {
     const value = (e.target as HTMLSelectElement).value;
-    if (signalTarget === 'site') this.data.site.set(value);
+    if (signalTarget === 'site') this.data.siteId.set(value);
     else if (signalTarget === 'range') this.data.range.set(value);
     else this.data.compare.set(value);
   }

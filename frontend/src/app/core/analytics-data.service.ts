@@ -1,9 +1,22 @@
-import { Injectable, signal } from '@angular/core';
+import { HttpClient, httpResource } from '@angular/common/http';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { Observable } from 'rxjs';
+import {
+  ApiCountRow,
+  ApiDevices,
+  ApiEventRow,
+  ApiGeoRow,
+  ApiPageRow,
+  ApiRealtime,
+  ApiSite,
+  ApiSiteListItem,
+  ApiSummary,
+  ApiTimeseries,
+} from './api-types';
 
 /**
- * Mock analytics data, ported 1:1 from the approved design.
- * This service is the seam for the future .NET backend: replace the
- * constants and generated series with HTTP calls, keep the shapes.
+ * Dashboard data adapter. Fetches raw numbers from the .NET API and
+ * formats them into the display shapes the pages consume.
  */
 
 export interface PageStats {
@@ -28,6 +41,14 @@ export interface BarRow {
   pct: number;
 }
 
+export interface MetricCard {
+  label: string;
+  value: string;
+  delta: string;
+  dir: 'up' | 'down';
+  tip: string;
+}
+
 export interface EventStats {
   id: string;
   total: number;
@@ -46,13 +67,13 @@ export interface GoalStats {
 }
 
 export interface SiteInfo {
+  id: string;
   name: string;
   domain: string;
   views: string;
   active: string;
   tone: 'success' | 'warning';
   status: string;
-  f: number;
 }
 
 export interface TableColumn {
@@ -61,190 +82,257 @@ export interface TableColumn {
   numeric?: boolean;
 }
 
-function seeded(seed: number): () => number {
-  let s = seed;
-  return () => ((s = (s * 16807) % 2147483647) / 2147483647);
+export type FetchState = 'loading' | 'error' | 'ready';
+
+interface StatsResource {
+  hasValue(): boolean;
+  error(): unknown;
 }
 
 export function fmt(n: number): string {
   return n.toLocaleString('en-US');
 }
 
+/** Seconds to "1m 46s". */
+export function fmtDur(totalSec: number): string {
+  const sec = Math.max(0, Math.round(totalSec));
+  return `${Math.floor(sec / 60)}m ${String(sec % 60).padStart(2, '0')}s`;
+}
+
+const MINUS = '−';
+
+function signed(text: string, diff: number): string {
+  return (diff > 0 ? '+' : MINUS) + text;
+}
+
+function dirOf(diff: number): 'up' | 'down' {
+  return diff < 0 ? 'down' : 'up';
+}
+
+/** Percent change vs the compare period, e.g. "+12.4%". Empty when not computable. */
+function pctDelta(cur: number, prev: number | undefined): string {
+  if (prev === undefined || prev <= 0 || cur === prev) return '';
+  const d = ((cur - prev) / prev) * 100;
+  return signed(Math.abs(d).toFixed(1) + '%', d);
+}
+
+function isoDay(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+function daysAgo(n: number): Date {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() - n);
+  return d;
+}
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function shortDate(iso: string): string {
+  const [, m, day] = iso.split('-').map(Number);
+  return `${MONTHS[m - 1]} ${day}`;
+}
+
+/** "/blog/shipping-kawaii-ui" to "Shipping kawaii ui"; "/" is Home. */
+function pageTitle(path: string): string {
+  if (path === '/') return 'Home';
+  const seg = path.split('/').filter(Boolean).pop() ?? path;
+  const words = seg.replace(/[-_]+/g, ' ');
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+function toBarRows(rows: ApiCountRow[]): BarRow[] {
+  return rows.map(r => ({ name: r.name, val: fmt(r.count), pct: Math.round(r.pct) }));
+}
+
+/** Bar fill relative to the largest row; rows arrive sorted descending. */
+function relBarRows(rows: ApiCountRow[]): BarRow[] {
+  const max = rows[0]?.count ?? 0;
+  return rows.map(r => ({ name: r.name, val: String(r.count), pct: max ? Math.round((r.count / max) * 100) : 0 }));
+}
+
+const DEVICE_COLORS: Record<string, string> = {
+  Desktop: 'var(--color-accent)',
+  Mobile: 'var(--teal-300)',
+  Tablet: 'var(--color-border)',
+};
+
+const METRIC_TIPS: Record<string, string> = {
+  Visitors: 'Unique visits in the period. A visit is a browsing session, not a persistent person.',
+  Pageviews: 'Total pages loaded.',
+  'Views per visitor': 'Pageviews divided by visitors.',
+  'Bounce rate': 'Visits that left after a single page. Lower is usually better.',
+  'Avg visit duration': 'Median time between first and last pageview of a visit.',
+};
+
 @Injectable({ providedIn: 'root' })
 export class AnalyticsDataService {
-  // ── Global header state ────────────────────────────────────────────
-  readonly site = signal('hazeliscoding.com');
+  private readonly http = inject(HttpClient);
+
+  // Global header state
+  readonly siteId = signal<string | null>(null);
   readonly range = signal('Last 30 days');
   readonly compare = signal('vs previous period');
 
   readonly rangeOptions = ['Last 7 days', 'Last 30 days', 'Last 90 days', 'Year to date'];
   readonly compareOptions = ['vs previous period', 'vs same period last year', 'No comparison'];
 
-  // ── Daily series (30 days, seeded — matches the design exactly) ────
-  readonly visitors: number[] = [];
-  readonly pageviews: number[] = [];
-  readonly sessions: number[] = [];
-  readonly prev: number[] = [];
+  /** Inclusive UTC date window plus compare mode, derived from the header selectors. */
+  private readonly period = computed(() => {
+    const to = isoDay(new Date());
+    const range = this.range();
+    let from: string;
+    if (range === 'Last 7 days') from = isoDay(daysAgo(6));
+    else if (range === 'Last 90 days') from = isoDay(daysAgo(89));
+    else if (range === 'Year to date') from = to.slice(0, 4) + '-01-01';
+    else from = isoDay(daysAgo(29));
+    const cmp = this.compare();
+    const compare = cmp === 'vs same period last year' ? 'year' : cmp === 'No comparison' ? 'none' : 'previous';
+    return { from, to, compare };
+  });
+
+  readonly rangeLabel = computed(() => {
+    const { from, to } = this.period();
+    return `${shortDate(from)} – ${shortDate(to)}, ${to.slice(0, 4)}`;
+  });
+
+  /** Evenly spaced date labels for chart x axes. */
+  axisLabels(count: number): string[] {
+    const { from, to } = this.period();
+    const start = new Date(from + 'T00:00:00Z').getTime();
+    const end = new Date(to + 'T00:00:00Z').getTime();
+    if (count < 2) return [shortDate(to)];
+    return Array.from({ length: count }, (_, i) =>
+      shortDate(isoDay(new Date(start + ((end - start) * i) / (count - 1)))),
+    );
+  }
+
+  private statsUrl(seg: string, opts?: { compare?: boolean; extra?: string }): string | undefined {
+    const id = this.siteId();
+    if (!id) return undefined;
+    const { from, to, compare } = this.period();
+    let url = `/api/sites/${id}/stats/${seg}?from=${from}&to=${to}`;
+    if (opts?.compare && compare !== 'none') url += `&compare=${compare}`;
+    return url + (opts?.extra ?? '');
+  }
+
+  // Resources; every one refetches when site, range or compare changes.
+  readonly sitesRes = httpResource<ApiSiteListItem[]>(() => '/api/sites');
+  readonly summaryRes = httpResource<ApiSummary>(() => this.statsUrl('summary', { compare: true }));
+  readonly chartMetric = signal<'visitors' | 'pageviews' | 'sessions'>('visitors');
+  readonly timeseriesRes = httpResource<ApiTimeseries>(() =>
+    this.statsUrl('timeseries', { compare: true, extra: `&metric=${this.chartMetric()}` }),
+  );
+  readonly pagesRes = httpResource<ApiPageRow[]>(() => this.statsUrl('pages'));
+  readonly channelsRes = httpResource<ApiCountRow[]>(() => this.statsUrl('sources', { extra: '&group=channels' }));
+  readonly referrersRes = httpResource<ApiCountRow[]>(() => this.statsUrl('sources', { extra: '&group=referrers' }));
+  readonly sourceGroup = signal('referrers');
+  readonly sourceGroupRes = httpResource<ApiCountRow[]>(() =>
+    this.statsUrl('sources', { extra: `&group=${this.sourceGroup()}` }),
+  );
+  readonly geoRes = httpResource<ApiGeoRow[]>(() => this.statsUrl('geo'));
+  readonly devicesRes = httpResource<ApiDevices>(() => this.statsUrl('devices'));
+  readonly eventsRes = httpResource<ApiEventRow[]>(() => this.statsUrl('events'));
+  readonly realtimeRes = httpResource<ApiRealtime>(() => {
+    const id = this.siteId();
+    return id ? `/api/sites/${id}/stats/realtime` : undefined;
+  });
 
   constructor() {
-    const r1 = seeded(42);
-    const r2 = seeded(1337);
-    for (let i = 0; i < 30; i++) {
-      const spike = i === 18 ? 430 : i === 19 ? 180 : 0;
-      const v = Math.round(170 + i * 2.6 + r1() * 75 + spike);
-      this.visitors.push(v);
-      this.pageviews.push(Math.round(v * (1.75 + r1() * 0.35)));
-      this.sessions.push(Math.round(v * (1.05 + r1() * 0.12)));
-      this.prev.push(Math.round(160 + i * 2.2 + r2() * 70));
-    }
+    // Select the first site once the list arrives, or after the current one is deleted.
+    effect(() => {
+      const list = this.sitesRes.value();
+      if (!list?.length) return;
+      if (!list.some(s => s.site.id === this.siteId())) this.siteId.set(list[0].site.id);
+    });
   }
 
-  // ── Overview ───────────────────────────────────────────────────────
-  readonly metrics = [
-    { label: 'Visitors', value: '8,214', delta: '+12.4%', dir: 'up', tip: 'Unique visits in the period. A visit is a browsing session, not a persistent person.' },
-    { label: 'Pageviews', value: '15,630', delta: '+8.1%', dir: 'up', tip: 'Total pages loaded.' },
-    { label: 'Views per visitor', value: '1.9', delta: '+0.2', dir: 'up', tip: 'Pageviews divided by visitors.' },
-    { label: 'Bounce rate', value: '42%', delta: '−2.1 pt', dir: 'down', tip: 'Visits that left after a single page. Lower is usually better.' },
-    { label: 'Avg visit duration', value: '1m 46s', delta: '+6s', dir: 'up', tip: 'Median time between first and last pageview of a visit.' },
-  ] as const;
-
-  readonly channelRows: BarRow[] = [
-    { name: 'Direct', pct: 38, val: '3,121' },
-    { name: 'Search', pct: 29, val: '2,383' },
-    { name: 'Referral', pct: 24, val: '1,972' },
-    { name: 'Social', pct: 9, val: '738' },
-  ];
-
-  readonly topSourceRows: NameVal[] = [
-    { name: 'Google', val: '2,210' },
-    { name: 'GitHub', val: '842' },
-    { name: 'Reddit', val: '512' },
-    { name: 'Hacker News', val: '460' },
-    { name: 'Bing', val: '173' },
-  ];
-
-  readonly browserTop = [
-    { name: 'Chrome', pct: 46 },
-    { name: 'Firefox', pct: 21 },
-    { name: 'Safari', pct: 19 },
-  ];
-
-  readonly osTop = [
-    { name: 'macOS', pct: 34 },
-    { name: 'Windows', pct: 31 },
-    { name: 'iOS', pct: 16 },
-  ];
-
-  // ── Pages ──────────────────────────────────────────────────────────
-  readonly pages: PageStats[] = [
-    { id: '/', title: 'Home', v: 3120, pv: 4890, bounce: 38, dur: '1m 12s', entry: 2980, exit: 1450 },
-    { id: '/projects', title: 'Projects', v: 2140, pv: 3620, bounce: 31, dur: '2m 04s', entry: 640, exit: 780 },
-    { id: '/blog', title: 'Blog', v: 1730, pv: 3480, bounce: 44, dur: '2m 31s', entry: 890, exit: 610 },
-    { id: '/blog/shipping-kawaii-ui', title: 'Shipping Kawaii UI', v: 1260, pv: 1410, bounce: 52, dur: '3m 18s', entry: 1120, exit: 940 },
-    { id: '/projects/kawaii-ui', title: 'Kawaii UI', v: 840, pv: 1680, bounce: 29, dur: '2m 47s', entry: 310, exit: 260 },
-    { id: '/about', title: 'About', v: 960, pv: 1150, bounce: 41, dur: '1m 05s', entry: 220, exit: 480 },
-    { id: '/uses', title: 'Uses', v: 410, pv: 470, bounce: 55, dur: '0m 58s', entry: 130, exit: 210 },
-    { id: '/blog/why-i-left-big-analytics', title: 'Why I left big analytics', v: 380, pv: 425, bounce: 48, dur: '4m 02s', entry: 290, exit: 250 },
-  ];
-
-  pageDetailSeries(page: PageStats): number[] {
-    return this.visitors.map((v, i) => Math.round(v * (page.v / 8214) * (0.8 + ((i * 7) % 5) / 10)));
+  /** 'error' beats 'loading'; 'ready' only when every resource has a value. */
+  stateOf(...resources: StatsResource[]): FetchState {
+    if (resources.some(r => r.error() !== undefined)) return 'error';
+    if (resources.some(r => !r.hasValue())) return 'loading';
+    return 'ready';
   }
 
-  readonly selPageRefs: NameVal[] = [
-    { name: 'Direct', val: '38%' },
-    { name: 'google.com', val: '27%' },
-    { name: 'github.com', val: '19%' },
-    { name: 'reddit.com', val: '9%' },
-  ];
-  readonly selPageDevices: NameVal[] = [
-    { name: 'Desktop', val: '61%' },
-    { name: 'Mobile', val: '33%' },
-    { name: 'Tablet', val: '6%' },
-  ];
-  readonly selPageCountries: NameVal[] = [
-    { name: 'United States', val: '34%' },
-    { name: 'Germany', val: '15%' },
-    { name: 'United Kingdom', val: '11%' },
-    { name: 'Japan', val: '9%' },
-  ];
-  readonly selPageEvents: NameVal[] = [
-    { name: 'project_link_clicked', val: '412' },
-    { name: 'github_link_clicked', val: '186' },
-  ];
+  // Sites
+  readonly siteOptions = computed(() => (this.sitesRes.value() ?? []).map(s => ({ id: s.site.id, domain: s.site.domain })));
+  private readonly selectedEntry = computed(
+    () => (this.sitesRes.value() ?? []).find(s => s.site.id === this.siteId()) ?? null,
+  );
+  readonly site = computed(() => this.selectedEntry()?.site.domain ?? '');
+  readonly currentSite = computed<ApiSite | null>(() => this.selectedEntry()?.site ?? null);
+  readonly snippet = computed(() => this.currentSite()?.snippet ?? '');
+  readonly hasData = computed(() => (this.summaryRes.value()?.current.pageviews ?? 0) > 0);
 
-  // ── Sources ────────────────────────────────────────────────────────
-  readonly channelShares = { direct: 0.38, search: 0.29, referral: 0.24, social: 0.09 };
+  readonly sites = computed<SiteInfo[]>(() =>
+    (this.sitesRes.value() ?? []).map(s => ({
+      id: s.site.id,
+      name: s.site.name,
+      domain: s.site.domain,
+      views: fmt(s.viewsLast30d),
+      active:
+        s.activeNow > 0
+          ? `${s.activeNow} active now`
+          : s.status === 'active'
+            ? 'Quiet right now'
+            : 'No visits yet',
+      tone: s.status === 'active' ? 'success' : 'warning',
+      status: s.status === 'active' ? 'Active' : 'Waiting for data',
+    })),
+  );
 
-  readonly sourceTables: Record<string, { cols: TableColumn[]; rows: Record<string, string>[] }> = {
-    referrers: {
-      cols: [
-        { key: 'name', label: 'Referrer' },
-        { key: 'v', label: 'Visitors', numeric: true },
-        { key: 'pv', label: 'Pageviews', numeric: true },
-        { key: 'bounce', label: 'Bounce', numeric: true },
-      ],
-      rows: [
-        { id: 'gh', name: 'github.com', v: '842', pv: '1,690', bounce: '28%' },
-        { id: 'go', name: 'google.com', v: '2,210', pv: '3,980', bounce: '43%' },
-        { id: 'rd', name: 'reddit.com', v: '512', pv: '890', bounce: '51%' },
-        { id: 'hn', name: 'news.ycombinator.com', v: '460', pv: '1,120', bounce: '39%' },
-        { id: 'bg', name: 'bing.com', v: '173', pv: '260', bounce: '47%' },
-        { id: 'dev', name: 'dev.to', v: '128', pv: '245', bounce: '35%' },
-      ],
-    },
-    search: {
-      cols: [
-        { key: 'name', label: 'Search engine' },
-        { key: 'v', label: 'Visitors', numeric: true },
-        { key: 'share', label: 'Share', numeric: true },
-      ],
-      rows: [
-        { id: 's1', name: 'Google', v: '2,210', share: '89%' },
-        { id: 's2', name: 'Bing', v: '173', share: '7%' },
-        { id: 's3', name: 'DuckDuckGo', v: '96', share: '4%' },
-      ],
-    },
-    social: {
-      cols: [
-        { key: 'name', label: 'Platform' },
-        { key: 'v', label: 'Visitors', numeric: true },
-        { key: 'pv', label: 'Pageviews', numeric: true },
-      ],
-      rows: [
-        { id: 'p1', name: 'Reddit', v: '512', pv: '890' },
-        { id: 'p2', name: 'Mastodon', v: '134', pv: '250' },
-        { id: 'p3', name: 'Bluesky', v: '92', pv: '160' },
-      ],
-    },
-    campaigns: {
-      cols: [
-        { key: 'name', label: 'Campaign' },
-        { key: 'sm', label: 'Source / medium' },
-        { key: 'v', label: 'Visitors', numeric: true },
-        { key: 'conv', label: 'Conversions', numeric: true },
-      ],
-      rows: [
-        { id: 'c1', name: 'newsletter-aug', sm: 'buttondown / email', v: '284', conv: '41' },
-        { id: 'c2', name: 'kawaii-ui-launch', sm: 'reddit / social', v: '196', conv: '22' },
-        { id: 'c3', name: 'conf-talk-qr', sm: 'qr / offline', v: '58', conv: '9' },
-      ],
-    },
-  };
+  // Overview
+  readonly metrics = computed<MetricCard[]>(() => {
+    const s = this.summaryRes.value();
+    if (!s) return [];
+    const cur = s.current;
+    const cmp = s.compare;
+    const vpvDiff = cmp ? cur.viewsPerVisitor - cmp.viewsPerVisitor : 0;
+    const bounceDiff = cmp ? cur.bounceRatePct - cmp.bounceRatePct : 0;
+    const durDiff = cmp ? Math.round(cur.avgDurationSec - cmp.avgDurationSec) : 0;
+    return [
+      { label: 'Visitors', value: fmt(cur.visitors), delta: pctDelta(cur.visitors, cmp?.visitors), dir: dirOf(cur.visitors - (cmp?.visitors ?? 0)), tip: METRIC_TIPS['Visitors'] },
+      { label: 'Pageviews', value: fmt(cur.pageviews), delta: pctDelta(cur.pageviews, cmp?.pageviews), dir: dirOf(cur.pageviews - (cmp?.pageviews ?? 0)), tip: METRIC_TIPS['Pageviews'] },
+      { label: 'Views per visitor', value: cur.viewsPerVisitor.toFixed(1), delta: cmp && Math.abs(vpvDiff) >= 0.05 ? signed(Math.abs(vpvDiff).toFixed(1), vpvDiff) : '', dir: dirOf(vpvDiff), tip: METRIC_TIPS['Views per visitor'] },
+      { label: 'Bounce rate', value: Math.round(cur.bounceRatePct) + '%', delta: cmp && Math.abs(bounceDiff) >= 0.05 ? signed(Math.abs(bounceDiff).toFixed(1) + ' pt', bounceDiff) : '', dir: dirOf(bounceDiff), tip: METRIC_TIPS['Bounce rate'] },
+      { label: 'Avg visit duration', value: fmtDur(cur.avgDurationSec), delta: cmp && durDiff !== 0 ? signed(Math.abs(durDiff) + 's', durDiff) : '', dir: dirOf(durDiff), tip: METRIC_TIPS['Avg visit duration'] },
+    ];
+  });
 
-  // ── Geography ──────────────────────────────────────────────────────
-  readonly geo: [string, number, number][] = [
-    ['United States', 2870, 35], ['Germany', 1150, 14], ['United Kingdom', 985, 12],
-    ['Japan', 740, 9], ['Canada', 660, 8], ['Netherlands', 420, 5],
-    ['Australia', 390, 5], ['France', 310, 4], ['Other', 689, 8],
-  ];
+  readonly series = computed(() => (this.timeseriesRes.value()?.points ?? []).map(p => p.value));
+  readonly prevSeries = computed(() => (this.timeseriesRes.value()?.compare ?? []).map(p => p.value));
 
-  readonly usRegions: NameVal[] = [
-    { name: 'California', val: '412' }, { name: 'New York', val: '268' }, { name: 'Texas', val: '214' },
-    { name: 'Washington', val: '176' }, { name: 'Massachusetts', val: '121' }, { name: 'Other regions', val: '1,679' },
-  ];
+  readonly channelRows = computed<BarRow[]>(() => toBarRows(this.channelsRes.value() ?? []));
+  readonly topSourceRows = computed<NameVal[]>(() =>
+    (this.referrersRes.value() ?? []).slice(0, 5).map(r => ({ name: r.name, val: fmt(r.count) })),
+  );
+  readonly browserTop = computed(() =>
+    (this.devicesRes.value()?.browsers ?? []).slice(0, 3).map(r => ({ name: r.name, pct: Math.round(r.pct) })),
+  );
+  readonly osTop = computed(() =>
+    (this.devicesRes.value()?.os ?? []).slice(0, 3).map(r => ({ name: r.name, pct: Math.round(r.pct) })),
+  );
 
-  /** Stylized world-map dot grid: per row, [startCol, endCol] land ranges. */
+  // Pages
+  readonly pages = computed<PageStats[]>(() =>
+    (this.pagesRes.value() ?? []).map(p => ({
+      id: p.path,
+      title: pageTitle(p.path),
+      v: p.visitors,
+      pv: p.pageviews,
+      bounce: Math.round(p.bouncePct),
+      dur: fmtDur(p.avgDurationSec),
+      entry: p.entries,
+      exit: p.exits,
+    })),
+  );
+
+  // Geography
+  readonly geoRows = computed(() =>
+    (this.geoRes.value() ?? []).map(g => ({ name: g.name, val: fmt(g.visitors), pct: Math.round(g.pct) })),
+  );
+
+  /** Stylized world-map dot grid: per row, [startCol, endCol] land ranges. Decorative. */
   readonly mapLand: [number, number][][] = [
     [[2, 9], [16, 20], [32, 58]], [[1, 10], [16, 20], [30, 58]], [[2, 12], [17, 19], [29, 33], [34, 58]],
     [[3, 13], [28, 34], [35, 57]], [[3, 14], [28, 36], [37, 55]], [[3, 14], [28, 37], [38, 54]],
@@ -257,85 +345,110 @@ export class AnalyticsDataService {
     [[9, 10]], [[9, 10]], [[9, 9]],
   ];
 
-  /** Highlight regions: [rowStart, rowEnd, colStart, colEnd, intensity]. */
+  /** Highlight regions: [rowStart, rowEnd, colStart, colEnd, intensity]. Decorative. */
   readonly mapHighlights: [number, number, number, number, number][] = [
     [5, 7, 4, 12, 1], [2, 4, 4, 12, 0.5], [3, 3, 28, 29, 0.8], [4, 4, 31, 32, 0.85],
     [4, 4, 30, 30, 0.5], [5, 5, 29, 30, 0.45], [6, 7, 52, 54, 0.75], [17, 19, 51, 55, 0.5],
   ];
 
-  // ── Devices ────────────────────────────────────────────────────────
-  readonly deviceRows = [
-    { name: 'Desktop', pct: 58, val: '4,764', color: 'var(--color-accent)' },
-    { name: 'Mobile', pct: 36, val: '2,957', color: 'var(--teal-300)' },
-    { name: 'Tablet', pct: 6, val: '493', color: 'var(--color-border)' },
-  ];
+  // Devices
+  readonly deviceClasses = computed(() => {
+    const rows = this.devicesRes.value()?.classes ?? [];
+    const order = ['Desktop', 'Mobile', 'Tablet'];
+    return order.map(name => {
+      const r = rows.find(x => x.name === name);
+      return { name, pct: r ? Math.round(r.pct) : 0, val: fmt(r?.count ?? 0), color: DEVICE_COLORS[name] };
+    });
+  });
+  readonly browserRows = computed<BarRow[]>(() => toBarRows(this.devicesRes.value()?.browsers ?? []));
+  readonly osRows = computed<BarRow[]>(() => toBarRows(this.devicesRes.value()?.os ?? []));
 
-  readonly browserRows: BarRow[] = [
-    { name: 'Chrome', pct: 46, val: '3,778' }, { name: 'Firefox', pct: 21, val: '1,725' },
-    { name: 'Safari', pct: 19, val: '1,561' }, { name: 'Edge', pct: 8, val: '657' },
-    { name: 'Arc', pct: 4, val: '329' }, { name: 'Other', pct: 2, val: '164' },
-  ];
+  // Events
+  readonly events = computed<EventStats[]>(() =>
+    (this.eventsRes.value() ?? []).map(e => ({
+      id: e.name,
+      total: e.total,
+      uniq: e.uniqueVisitors,
+      conv: e.convPct.toFixed(1) + '%',
+      // No compare data for events yet; empty delta hides the badge.
+      delta: '',
+      pages: e.pages.map(p => [p.name, p.count] as [string, number]),
+      sources: e.sources.map(s => [s.name, s.count] as [string, number]),
+    })),
+  );
 
-  readonly osRows: BarRow[] = [
-    { name: 'macOS', pct: 34, val: '2,793' }, { name: 'Windows', pct: 31, val: '2,546' },
-    { name: 'iOS', pct: 16, val: '1,314' }, { name: 'Android', pct: 12, val: '986' }, { name: 'Linux', pct: 7, val: '575' },
-  ];
+  // Realtime
+  readonly rt = computed(() => {
+    const r = this.realtimeRes.value();
+    if (!r) return null;
+    const d = r.devices;
+    const devTotal = d.desktop + d.mobile + d.tablet;
+    return {
+      active: r.activeVisitors,
+      vals: r.pageviewsPerMinute,
+      maxVal: Math.max(1, ...r.pageviewsPerMinute),
+      pages: relBarRows(r.pages),
+      sources: relBarRows(r.sources),
+      countries: r.countries.map(c => ({ name: c.name, val: String(c.count) })),
+      devices: d,
+      devicePct: {
+        desktop: devTotal ? Math.round((d.desktop / devTotal) * 100) : 0,
+        mobile: devTotal ? Math.round((d.mobile / devTotal) * 100) : 0,
+      },
+    };
+  });
 
-  // ── Realtime ───────────────────────────────────────────────────────
-  readonly rtVals = Array.from({ length: 30 }, (_, i) => 2 + Math.round((Math.sin(i * 1.7) + 1) * 2.4 + ((i * 13) % 3)));
-
-  readonly rtPages: BarRow[] = [
-    { name: '/', val: '6', pct: 100 }, { name: '/projects', val: '5', pct: 83 },
-    { name: '/blog/shipping-kawaii-ui', val: '4', pct: 67 }, { name: '/about', val: '3', pct: 50 },
-  ];
-  readonly rtSources: BarRow[] = [
-    { name: 'Direct', val: '8', pct: 100 }, { name: 'GitHub', val: '5', pct: 63 },
-    { name: 'Google', val: '4', pct: 50 }, { name: 'Reddit', val: '1', pct: 13 },
-  ];
-  readonly rtCountries: NameVal[] = [
-    { name: 'United States', val: '7' }, { name: 'Germany', val: '4' }, { name: 'Japan', val: '3' },
-    { name: 'United Kingdom', val: '2' }, { name: 'Other', val: '2' },
-  ];
-
-  // ── Events ─────────────────────────────────────────────────────────
-  readonly events: EventStats[] = [
-    {
-      id: 'project_link_clicked', total: 1284, uniq: 1050, conv: '12.8%', delta: '+18%',
-      pages: [['/projects', 812], ['/', 296], ['/projects/kawaii-ui', 176]],
-      sources: [['Direct', 490], ['GitHub', 310], ['Google', 250]],
-    },
-    {
-      id: 'github_link_clicked', total: 918, uniq: 812, conv: '9.9%', delta: '+11%',
-      pages: [['/projects', 502], ['/about', 214], ['/', 202]],
-      sources: [['Direct', 402], ['Hacker News', 286], ['Google', 230]],
-    },
-    {
-      id: 'resume_downloaded', total: 342, uniq: 338, conv: '4.1%', delta: '+6%',
-      pages: [['/about', 296], ['/', 46]],
-      sources: [['Direct', 180], ['LinkedIn', 98], ['Google', 64]],
-    },
-    {
-      id: 'theme_changed', total: 296, uniq: 244, conv: '3.0%', delta: '−2%',
-      pages: [['/', 168], ['/blog', 84], ['/projects', 44]],
-      sources: [['Direct', 202], ['Google', 94]],
-    },
-    {
-      id: 'blog_post_shared', total: 158, uniq: 151, conv: '1.9%', delta: '+24%',
-      pages: [['/blog/shipping-kawaii-ui', 112], ['/blog/why-i-left-big-analytics', 46]],
-      sources: [['Direct', 88], ['Reddit', 70]],
-    },
-  ];
-
-  eventSeries(): number[] {
-    return this.visitors.map((v, i) => Math.round(v * 0.14 * (0.7 + ((i * 11) % 6) / 10)));
+  // Site management
+  createSite(body: { name: string; domain: string; timezone: string }): Observable<ApiSite> {
+    return this.http.post<ApiSite>('/api/sites', body);
   }
 
-  readonly selEventDevGeo: NameVal[] = [
-    { name: 'Desktop', val: '64%' }, { name: 'Mobile', val: '36%' },
-    { name: 'United States', val: '38%' }, { name: 'Germany', val: '13%' },
+  updateSite(id: string, body: { name?: string; timezone?: string; retention?: string }): Observable<ApiSite> {
+    return this.http.put<ApiSite>(`/api/sites/${id}`, body);
+  }
+
+  deleteSite(id: string): Observable<void> {
+    return this.http.delete<void>(`/api/sites/${id}`);
+  }
+
+  // Install snippets
+  frameworksFor(snippet: string): Record<string, [string, string]> {
+    const siteId = /data-site="([^"]+)"/.exec(snippet)?.[1] ?? '';
+    const src = /src="([^"]+)"/.exec(snippet)?.[1] ?? '/script.js';
+    return {
+      'HTML': ['index.html', '<!-- Just before </head> -->\n' + snippet],
+      'React': ['public/index.html', '<!-- Vite / CRA: add to the host page -->\n' + snippet],
+      'Angular': ['src/index.html', snippet],
+      'Vue': ['index.html', snippet],
+      'Next.js': ['app/layout.tsx', `import Script from "next/script";\n\n// inside <body>\n<Script\n  src="${src}"\n  data-site="${siteId}"\n  strategy="afterInteractive"\n/>`],
+      'Astro': ['src/layouts/Layout.astro', `<script defer is:inline\n  src="${src}"\n  data-site="${siteId}"></script>`],
+    };
+  }
+
+  /** [display label, IANA id] pairs; the API stores the IANA id. */
+  readonly tzOptions: [string, string][] = [
+    ['(UTC−08:00) Pacific Time', 'America/Los_Angeles'],
+    ['(UTC−05:00) Eastern Time', 'America/New_York'],
+    ['(UTC+00:00) London', 'Europe/London'],
+    ['(UTC+01:00) Berlin', 'Europe/Berlin'],
+    ['(UTC+09:00) Tokyo', 'Asia/Tokyo'],
   ];
 
-  // ── Goals ──────────────────────────────────────────────────────────
+  /** [display label, description] pairs shown on the Privacy center. */
+  readonly retentionOptions: [string, string][] = [
+    ['30 days', 'Rolling month of daily aggregates.'], ['90 days', 'A quarter of history.'],
+    ['1 year', 'Recommended for year-over-year trends.'], ['Unlimited aggregates', 'Daily totals forever, still nothing personal.'],
+  ];
+
+  /** [display label, wire value] pairs for the retention setting. */
+  readonly retentionWire: [string, string][] = [
+    ['30 days', '30d'],
+    ['90 days', '90d'],
+    ['1 year', '1y'],
+    ['Unlimited aggregates', 'unlimited'],
+  ];
+
+  // Goals stay on mock data until the goals stats endpoint ships (backend has goal CRUD only).
   readonly goals: GoalStats[] = [
     { name: 'Visited /projects', type: 'Page visit', conv: 2140, rate: '26.1%' },
     { name: 'Clicked GitHub', type: 'Event', conv: 918, rate: '11.2%' },
@@ -357,32 +470,7 @@ export class AnalyticsDataService {
     download: ['File path ends with', '.pdf'],
   };
 
-  // ── Websites ───────────────────────────────────────────────────────
-  readonly sites: SiteInfo[] = [
-    { name: 'hazeliscoding', domain: 'hazeliscoding.com', views: '12,842', active: '3 active now', tone: 'success', status: 'Active', f: 1 },
-    { name: 'kawaii-ui', domain: 'kawaii-ui.dev', views: '4,281', active: '1 active now', tone: 'success', status: 'Active', f: 0.6 },
-    { name: 'portfolio', domain: 'portfolio.hazel.dev', views: '1,204', active: 'Quiet right now', tone: 'success', status: 'Active', f: 0.3 },
-    { name: 'mochi-demo', domain: 'mochi-demo.dev', views: '—', active: 'No visits yet', tone: 'warning', status: 'Waiting for data', f: 0 },
-  ];
-
-  // ── Install snippets ───────────────────────────────────────────────
-  readonly siteTag = '<script defer src="https://mochi.example/script.js" data-site="MC-7F3K2"></script>';
-
-  readonly frameworks: Record<string, [string, string]> = {
-    'HTML': ['index.html', '<!-- Just before </head> -->\n' + this.siteTag],
-    'React': ['public/index.html', '<!-- Vite / CRA: add to the host page -->\n' + this.siteTag],
-    'Angular': ['src/index.html', this.siteTag],
-    'Vue': ['index.html', this.siteTag],
-    'Next.js': ['app/layout.tsx', 'import Script from "next/script";\n\n// inside <body>\n<Script\n  src="https://mochi.example/script.js"\n  data-site="MC-7F3K2"\n  strategy="afterInteractive"\n/>'],
-    'Astro': ['src/layouts/Layout.astro', '<script defer is:inline\n  src="https://mochi.example/script.js"\n  data-site="MC-7F3K2"></script>'],
-  };
-
-  readonly tzOptions = [
-    '(UTC−08:00) Pacific Time', '(UTC−05:00) Eastern Time', '(UTC+00:00) London',
-    '(UTC+01:00) Berlin', '(UTC+09:00) Tokyo',
-  ];
-
-  // ── Privacy center ─────────────────────────────────────────────────
+  // Privacy center copy
   readonly privChecks: [string, string][] = [
     ['No cookies', 'Nothing is stored on your visitors’ devices.'],
     ['No fingerprinting', 'No canvas, font, or hardware probing.'],
@@ -404,10 +492,6 @@ export class AnalyticsDataService {
     ['Click paths per person', 'no individual timelines'], ['Anything cross-site', 'no shared profiles between websites'],
   ];
 
-  readonly retentionOptions: [string, string][] = [
-    ['30 days', 'Rolling month of daily aggregates.'], ['90 days', 'A quarter of history.'],
-    ['1 year', 'Recommended for year-over-year trends.'], ['Unlimited aggregates', 'Daily totals forever, still nothing personal.'],
-  ];
-
+  /** Display-only mirror for the Privacy center radios; Settings saves the real value. */
   readonly retention = signal('1 year');
 }

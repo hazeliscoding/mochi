@@ -2,11 +2,11 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs';
-import { AnalyticsDataService, PageStats, TableColumn, fmt } from '../core/analytics-data.service';
-import { areaD, lineD, linePts } from '../core/chart';
+import { AnalyticsDataService, NameVal, PageStats, TableColumn, fmt } from '../core/analytics-data.service';
 import { Icon } from '../ui/icon';
 import { DataTable } from '../ui/data-table';
 import { Metric } from '../ui/metric';
+import { PageState } from '../ui/page-state';
 
 const SORT_KEYS: Record<string, keyof PageStats> = {
   'Visitors': 'v',
@@ -19,7 +19,7 @@ const SORT_KEYS: Record<string, keyof PageStats> = {
 @Component({
   selector: 'mo-pages',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Icon, DataTable, Metric],
+  imports: [Icon, DataTable, Metric, PageState],
   template: `
     <section>
       @if (!selPage()) {
@@ -41,10 +41,16 @@ const SORT_KEYS: Record<string, keyof PageStats> = {
             <mo-icon [name]="sortDir() === -1 ? 'arrow-down-wide-narrow' : 'arrow-up-narrow-wide'" />
           </button>
         </div>
-        <div class="mo-card" style="overflow-x:auto">
-          <mo-data-table [columns]="pageCols" [rows]="pageRows()" [lined]="true" [clickable]="true" (rowClick)="openPage($event)" />
-        </div>
-        <div style="margin-top:10px;font-size:12px;color:var(--color-text-secondary)">Select a page to see its trend, referrers, and events.</div>
+        @if (state() !== 'ready') {
+          <mo-page-state [kind]="state()" />
+        } @else if (!data.pages().length) {
+          <mo-page-state kind="empty" />
+        } @else {
+          <div class="mo-card" style="overflow-x:auto">
+            <mo-data-table [columns]="pageCols" [rows]="pageRows()" [lined]="true" [clickable]="true" (rowClick)="openPage($event)" />
+          </div>
+          <div style="margin-top:10px;font-size:12px;color:var(--color-text-secondary)">Select a page to see its details.</div>
+        }
       } @else {
         <div style="margin:4px 0 14px">
           <button type="button" class="tr-btn tr-btn--ghost tr-btn--sm" (click)="closePage()">
@@ -53,47 +59,27 @@ const SORT_KEYS: Record<string, keyof PageStats> = {
           </button>
         </div>
         <h1 style="font:600 24px/1.2 var(--font-display);margin:0 0 2px;letter-spacing:-.01em">{{ selPage()!.title }}</h1>
-        <div class="mo-mono" style="font-size:13px;color:var(--color-text-secondary);margin-bottom:18px">hazeliscoding.com{{ selPage()!.id }}</div>
+        <div class="mo-mono" style="font-size:13px;color:var(--color-text-secondary);margin-bottom:18px">{{ data.site() }}{{ selPage()!.id }}</div>
         <div class="mo-card mo-metric-strip" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:16px">
           @for (m of selPageMetrics(); track m.label) {
             <div>
-              <mo-metric [label]="m.label" [value]="m.value" [delta]="m.delta" [dir]="m.dir" />
+              <mo-metric [label]="m.label" [value]="m.value" />
             </div>
           }
         </div>
-        <div class="mo-card" style="padding:14px 16px;margin-bottom:16px">
-          <div class="mo-card-label" style="margin-bottom:10px">Visitors · last 30 days</div>
-          <svg viewBox="0 0 760 120" style="width:100%;height:auto;display:block" aria-hidden="true">
-            <path [attr.d]="detailChart().area" fill="var(--color-accent-subtle)" opacity="0.65" />
-            <path [attr.d]="detailChart().line" fill="none" stroke="var(--color-accent)" stroke-width="2" />
-          </svg>
-        </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
           <div class="mo-card" style="padding:14px 8px">
-            <div class="mo-card-label" style="margin:0 8px 8px">Top referrers</div>
-            @for (r of data.selPageRefs; track r.name) {
-              <div class="mo-kv-row"><span>{{ r.name }}</span><span>{{ r.val }}</span></div>
-            }
-          </div>
-          <div class="mo-card" style="padding:14px 8px">
-            <div class="mo-card-label" style="margin:0 8px 8px">Devices</div>
-            @for (r of data.selPageDevices; track r.name) {
-              <div class="mo-kv-row"><span>{{ r.name }}</span><span>{{ r.val }}</span></div>
-            }
-          </div>
-          <div class="mo-card" style="padding:14px 8px">
-            <div class="mo-card-label" style="margin:0 8px 8px">Countries</div>
-            @for (r of data.selPageCountries; track r.name) {
-              <div class="mo-kv-row"><span>{{ r.name }}</span><span>{{ r.val }}</span></div>
-            }
-          </div>
-          <div class="mo-card" style="padding:14px 8px">
             <div class="mo-card-label" style="margin:0 8px 8px">Events on this page</div>
-            @for (r of data.selPageEvents; track r.name) {
+            @for (r of selPageEvents(); track r.name) {
               <div class="mo-kv-row"><span class="mo-mono" style="font-size:12px">{{ r.name }}</span><span>{{ r.val }}</span></div>
+            }
+            @if (!selPageEvents().length) {
+              <div style="padding:2px 10px 6px;font-size:13px;color:var(--color-text-secondary)">No custom events fired here in this period.</div>
             }
           </div>
         </div>
+        <!-- Per-page referrer, device and country breakdowns need a page filter on the stats API. -->
+        <div style="margin-top:12px;font-size:12px;color:var(--color-text-secondary)">Referrer, device, and country breakdowns per page are coming soon.</div>
       }
     </section>
   `,
@@ -112,8 +98,10 @@ export class Pages {
     () => this.sortOptions.find(k => SORT_KEYS[k] === this.sortKey()) ?? 'Visitors',
   );
 
+  protected readonly state = computed(() => this.data.stateOf(this.data.pagesRes));
+
   private readonly selPath = toSignal(this.route.queryParamMap.pipe(map(p => p.get('path'))), { initialValue: null });
-  protected readonly selPage = computed(() => this.data.pages.find(p => p.id === this.selPath()) ?? null);
+  protected readonly selPage = computed(() => this.data.pages().find(p => p.id === this.selPath()) ?? null);
 
   protected readonly pageCols: TableColumn[] = [
     { key: 'page', label: 'Page' },
@@ -130,7 +118,7 @@ export class Pages {
     const q = this.query().toLowerCase();
     const key = this.sortKey();
     const dir = this.sortDir();
-    return this.data.pages
+    return this.data.pages()
       .filter(p => !q || p.id.toLowerCase().includes(q) || p.title.toLowerCase().includes(q))
       .slice()
       .sort((a, b) => ((a[key] as number) - (b[key] as number)) * dir)
@@ -139,7 +127,7 @@ export class Pages {
         page: p.id,
         v: fmt(p.v),
         pv: fmt(p.pv),
-        vpv: (p.pv / p.v).toFixed(1),
+        vpv: p.v > 0 ? (p.pv / p.v).toFixed(1) : '0.0',
         bounce: p.bounce + '%',
         dur: p.dur,
         entry: fmt(p.entry),
@@ -151,20 +139,23 @@ export class Pages {
     const p = this.selPage();
     if (!p) return [];
     return [
-      { label: 'Visitors', value: fmt(p.v), delta: '+9%', dir: 'up' as const },
-      { label: 'Pageviews', value: fmt(p.pv), delta: '+7%', dir: 'up' as const },
-      { label: 'Bounce rate', value: p.bounce + '%', delta: '−1.2 pt', dir: 'down' as const },
-      { label: 'Avg duration', value: p.dur, delta: '+4s', dir: 'up' as const },
+      { label: 'Visitors', value: fmt(p.v) },
+      { label: 'Pageviews', value: fmt(p.pv) },
+      { label: 'Bounce rate', value: p.bounce + '%' },
+      { label: 'Avg duration', value: p.dur },
+      { label: 'Entries', value: fmt(p.entry) },
+      { label: 'Exits', value: fmt(p.exit) },
     ];
   });
 
-  protected readonly detailChart = computed(() => {
-    const p = this.selPage();
-    if (!p) return { line: '', area: '' };
-    const series = this.data.pageDetailSeries(p);
-    const max = Math.max(...series) * 1.1;
-    const pts = linePts(series, 8, 752, 8, 112, max);
-    return { line: lineD(pts), area: areaD(pts, 112) };
+  protected readonly selPageEvents = computed<NameVal[]>(() => {
+    const path = this.selPath();
+    if (!path) return [];
+    return this.data.events()
+      .map(e => ({ name: e.id, count: e.pages.find(p => p[0] === path)?.[1] ?? 0 }))
+      .filter(e => e.count > 0)
+      .sort((a, b) => b.count - a.count)
+      .map(e => ({ name: e.name, val: fmt(e.count) }));
   });
 
   protected onQuery(e: Event): void {

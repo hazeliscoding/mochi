@@ -9,8 +9,8 @@
     </div>
     <div class="mo-header__divider"></div>
     <select class="tr-select" style="width:200px" aria-label="Current website" (change)="onSelect('site', $event)">
-      @for (s of siteOptions; track s) {
-        <option [value]="s" [selected]="s === data.site()">{{ s }}</option>
+      @for (s of siteOptions(); track s.id) {
+        <option [value]="s.id" [selected]="s.id === data.siteId()">{{ s.domain }}</option>
       }
     </select>
     <div class="mo-spacer"></div>

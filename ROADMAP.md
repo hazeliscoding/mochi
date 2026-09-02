@@ -52,19 +52,25 @@ hash (0001), the API contracts (0002), and the storage/rollup model (0003).
 - [x] Verified end to end: cross-origin page in headless Chrome produced
       pageview, SPA pageview and custom event rows in Postgres
 
-## v0.4 — Data out
+## v0.4 — Data out ✅
 
 > You can now: open the dashboard and see real traffic instead of mock data.
 
-- [ ] Query endpoints matching the frontend's data shapes (`PageStats`,
-      `BarRow`, `EventStats`, `GoalStats`, `SiteInfo`, …)
-- [ ] Replace `analytics-data.service.ts` constants with HTTP calls
-- [ ] Date-range + comparison-period filters hitting real queries
-- [ ] Realtime page via polling or SSE
-- [ ] Loading / empty / error states for every page
-- [ ] Show the real snippet in the Add Website / Settings pages (moved from
-      v0.3; needs the frontend wired to the API)
-- [ ] Playwright e2e tests for the UI/UX flows and happy paths
+- [x] Query endpoints (`/api/sites/{id}/stats/*`): summary, timeseries, pages,
+      sources, geo, devices, events, realtime; closed days from rollups, today
+      sessionized live so definitions agree; compare=previous|year
+- [x] Replace `analytics-data.service.ts` constants with HTTP calls (service
+      formats numbers into the existing display shapes; pages barely changed)
+- [x] Date-range + comparison-period filters hitting real queries
+- [x] Realtime page polling every 15 s
+- [x] Loading / empty / error states for every page
+- [x] Real snippet in the Add Website / Settings pages; Websites page shows
+      live viewsLast30d / activeNow / status
+- [x] Playwright e2e suite (`npm run e2e`): 9 happy-path tests boot API +
+      frontend, seed traffic, verify all pages render real data
+- Cards without backing endpoints were removed, not faked (per-page
+  referrer/device/country, per-event sparklines, US regions); Goals page stays
+  mock until the goals stats endpoint (moved to v0.5)
 
 ## v0.5 — Accounts & multi-site
 
@@ -73,6 +79,8 @@ hash (0001), the API contracts (0002), and the storage/rollup model (0003).
 - [ ] Authentication (single user first, then teams)
 - [ ] Per-site access control
 - [ ] Onboarding flow: add site → verify snippet installed → first data
+- [ ] Goals stats endpoint (`GET …/goals/stats`) and wire the Goals page
+      (deferred from v0.4)
 
 ## v0.6 — Privacy center, for real
 

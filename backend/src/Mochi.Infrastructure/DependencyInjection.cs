@@ -5,6 +5,7 @@ using Mochi.Application.Abstractions;
 using Mochi.Application.Collect;
 using Mochi.Application.Rollups;
 using Mochi.Application.Sites;
+using Mochi.Application.Stats;
 using Mochi.Infrastructure.Collection;
 using Mochi.Infrastructure.InMemory;
 using Mochi.Infrastructure.Persistence;
@@ -39,7 +40,9 @@ public static class DependencyInjection
         {
             services.AddSingleton<ISiteRepository, InMemorySiteRepository>();
             services.AddSingleton<IAnalyticsEventStore, InMemoryAnalyticsEventStore>();
-            services.AddSingleton<IRollupStore, InMemoryRollupStore>();
+            services.AddSingleton<InMemoryRollupStore>();
+            services.AddSingleton<IRollupStore>(sp => sp.GetRequiredService<InMemoryRollupStore>());
+            services.AddSingleton<IRollupReader, InMemoryRollupReader>();
         }
         else
         {
@@ -47,11 +50,13 @@ public static class DependencyInjection
             services.AddScoped<ISiteRepository, EfSiteRepository>();
             services.AddScoped<IAnalyticsEventStore, EfAnalyticsEventStore>();
             services.AddScoped<IRollupStore, EfRollupStore>();
+            services.AddScoped<IRollupReader, EfRollupReader>();
         }
 
         services.AddScoped<CollectHandler>();
         services.AddScoped<RegisterSiteHandler>();
         services.AddScoped<RollupJob>();
+        services.AddScoped<StatsService>();
         services.AddHostedService<DailyRollupHostedService>();
         return services;
     }

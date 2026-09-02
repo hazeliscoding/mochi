@@ -35,6 +35,16 @@ public sealed class InMemoryAnalyticsEventStore : IAnalyticsEventStore
     }
 
     /// <inheritdoc />
+    public Task<IReadOnlyCollection<AnalyticsEvent>> ReadRecentAsync(SiteId siteId, DateTimeOffset since, CancellationToken ct = default)
+    {
+        lock (_lock)
+        {
+            return Task.FromResult<IReadOnlyCollection<AnalyticsEvent>>(
+                [.. _events.Where(e => e.SiteId == siteId && e.OccurredAt >= since)]);
+        }
+    }
+
+    /// <inheritdoc />
     public Task PurgeBeforeAsync(DateTimeOffset cutoff, CancellationToken ct = default)
     {
         lock (_lock) _events.RemoveAll(e => e.OccurredAt < cutoff);

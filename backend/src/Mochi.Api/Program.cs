@@ -5,6 +5,7 @@ using Mochi.Application.Abstractions;
 using Mochi.Application.Collect;
 using Mochi.Application.Rollups;
 using Mochi.Application.Sites;
+using Mochi.Application.Stats;
 using Mochi.Domain.Sites;
 using Mochi.Infrastructure;
 using Mochi.Infrastructure.Persistence;
@@ -93,10 +94,16 @@ app.MapPost("/api/sites", async (SiteRequest req, RegisterSiteHandler handler, C
     return Results.Created($"/api/sites/{site.Id.Value}", SiteResponse.From(site, snippetBaseUrl));
 });
 
-app.MapGet("/api/sites", async (ISiteRepository sites, CancellationToken ct) =>
+app.MapGet("/api/sites", async (ISiteRepository sites, StatsService stats, CancellationToken ct) =>
 {
-    var all = await sites.ListAsync(ct);
-    return Results.Ok(all.Select(s => SiteResponse.From(s, snippetBaseUrl)));
+    var items = new List<SiteListItem>();
+    foreach (var s in await sites.ListAsync(ct))
+    {
+        var o = await stats.OverviewAsync(s.Id, ct);
+        items.Add(new SiteListItem(SiteResponse.From(s, snippetBaseUrl), o.ViewsLast30d, o.ActiveNow, o.ViewsLast30d > 0 ? "active" : "waiting"));
+    }
+
+    return Results.Ok(items);
 });
 
 app.MapGet("/api/sites/{id}", async (string id, ISiteRepository sites, CancellationToken ct) =>
@@ -128,6 +135,44 @@ app.MapDelete("/api/sites/{id}", async (string id, ISiteRepository sites, IAnaly
     await sites.RemoveAsync(siteId, ct);
     return Results.NoContent();
 });
+
+// Stats queries (ADR 0002). from/to are inclusive UTC days, defaulting to the
+// last 30 days; compare is "previous", "year" or absent.
+var stats = app.MapGroup("/api/sites/{id}/stats");
+
+stats.MapGet("/summary", (string id, DateOnly? from, DateOnly? to, string? compare, StatsService svc, ISiteRepository sites, CancellationToken ct) =>
+    WithSite(id, sites, ct, siteId => svc.SummaryAsync(siteId, From(from), To(to), compare, ct)));
+
+stats.MapGet("/timeseries", (string id, DateOnly? from, DateOnly? to, string? metric, string? compare, StatsService svc, ISiteRepository sites, CancellationToken ct) =>
+    WithSite(id, sites, ct, siteId => svc.TimeseriesAsync(siteId, From(from), To(to), metric ?? "visitors", compare, ct)));
+
+stats.MapGet("/pages", (string id, DateOnly? from, DateOnly? to, StatsService svc, ISiteRepository sites, CancellationToken ct) =>
+    WithSite(id, sites, ct, siteId => svc.PagesAsync(siteId, From(from), To(to), ct)));
+
+stats.MapGet("/sources", (string id, DateOnly? from, DateOnly? to, string? group, StatsService svc, ISiteRepository sites, CancellationToken ct) =>
+    WithSite(id, sites, ct, siteId => svc.SourcesAsync(siteId, From(from), To(to), group ?? "channels", ct)));
+
+stats.MapGet("/geo", (string id, DateOnly? from, DateOnly? to, StatsService svc, ISiteRepository sites, CancellationToken ct) =>
+    WithSite(id, sites, ct, siteId => svc.GeoAsync(siteId, From(from), To(to), ct)));
+
+stats.MapGet("/devices", (string id, DateOnly? from, DateOnly? to, StatsService svc, ISiteRepository sites, CancellationToken ct) =>
+    WithSite(id, sites, ct, siteId => svc.DevicesAsync(siteId, From(from), To(to), ct)));
+
+stats.MapGet("/events", (string id, DateOnly? from, DateOnly? to, StatsService svc, ISiteRepository sites, CancellationToken ct) =>
+    WithSite(id, sites, ct, siteId => svc.EventsAsync(siteId, From(from), To(to), ct)));
+
+stats.MapGet("/realtime", (string id, StatsService svc, ISiteRepository sites, CancellationToken ct) =>
+    WithSite(id, sites, ct, siteId => svc.RealtimeAsync(siteId, ct)));
+
+static DateOnly From(DateOnly? from) => from ?? DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-29);
+static DateOnly To(DateOnly? to) => to ?? DateOnly.FromDateTime(DateTime.UtcNow);
+
+static async Task<IResult> WithSite<T>(string id, ISiteRepository sites, CancellationToken ct, Func<SiteId, Task<T>> query)
+{
+    if (!SiteId.TryParse(id, out var siteId)) return Results.NotFound();
+    if (await sites.GetAsync(siteId, ct) is null) return Results.NotFound();
+    return Results.Ok(await query(siteId));
+}
 
 // Manual rollup rerun per ADR 0003. Unauthenticated until v0.5, so keep the
 // API bound to localhost in the meantime.

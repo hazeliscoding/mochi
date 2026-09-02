@@ -15,6 +15,9 @@ public interface IAnalyticsEventStore
     /// <summary>All events for one site on one UTC day, any order.</summary>
     Task<IReadOnlyCollection<AnalyticsEvent>> ReadDayAsync(SiteId siteId, DateOnly utcDay, CancellationToken ct = default);
 
+    /// <summary>All events for one site since <paramref name="since"/>. Serves the realtime view.</summary>
+    Task<IReadOnlyCollection<AnalyticsEvent>> ReadRecentAsync(SiteId siteId, DateTimeOffset since, CancellationToken ct = default);
+
     /// <summary>Deletes events older than <paramref name="cutoff"/> across all sites.</summary>
     Task PurgeBeforeAsync(DateTimeOffset cutoff, CancellationToken ct = default);
 
