@@ -40,15 +40,17 @@ hash (0001), the API contracts (0002), and the storage/rollup model (0003).
 - [x] Integration tests: Testcontainers Postgres + real HTTP happy paths
       (register, collect, rollup, cascade delete)
 
-## v0.3 — Tracking script
+## v0.3 — Tracking script ✅
 
 > You can now: drop a snippet on any site and Mochi receives its traffic.
 
-- [ ] Tiny embeddable `mochi.js` snippet (< 2 KB, no cookies, no localStorage)
-- [ ] Pageview auto-tracking + SPA route-change detection
-- [ ] Custom event API (`mochi('event', 'signup')`)
-- [ ] Respect DNT / Global Privacy Control
-- [ ] Serve the real snippet in the Add Website / Settings pages
+- [x] Tiny embeddable snippet served at `/script.js` (1.9 KB, no cookies, no
+      storage; size and storage-API bans enforced by integration tests)
+- [x] Pageview auto-tracking + SPA route-change detection (pushState/popstate)
+- [x] Custom event API (`mochi('event', 'signup')`) with a pre-load stub queue
+- [x] Respect DNT / Global Privacy Control
+- [x] Verified end to end: cross-origin page in headless Chrome produced
+      pageview, SPA pageview and custom event rows in Postgres
 
 ## v0.4 — Data out
 
@@ -60,6 +62,9 @@ hash (0001), the API contracts (0002), and the storage/rollup model (0003).
 - [ ] Date-range + comparison-period filters hitting real queries
 - [ ] Realtime page via polling or SSE
 - [ ] Loading / empty / error states for every page
+- [ ] Show the real snippet in the Add Website / Settings pages (moved from
+      v0.3; needs the frontend wired to the API)
+- [ ] Playwright e2e tests for the UI/UX flows and happy paths
 
 ## v0.5 — Accounts & multi-site
 

@@ -13,13 +13,36 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMochi(builder.Configuration);
 var app = builder.Build();
 
+// Migrate on startup. Retries because the database container may still be
+// initializing when the API starts (postgres restarts once during initdb).
 if (!string.IsNullOrWhiteSpace(app.Configuration.GetConnectionString("Mochi")))
 {
     using var scope = app.Services.CreateScope();
-    await scope.ServiceProvider.GetRequiredService<MochiDbContext>().Database.MigrateAsync();
+    var db = scope.ServiceProvider.GetRequiredService<MochiDbContext>();
+    for (var attempt = 1; ; attempt++)
+    {
+        try
+        {
+            await db.Database.MigrateAsync();
+            break;
+        }
+        catch (Exception ex) when (attempt < 10)
+        {
+            app.Logger.LogWarning("migration attempt {Attempt} failed: {Message}; retrying", attempt, ex.Message);
+            await Task.Delay(TimeSpan.FromSeconds(2));
+        }
+    }
 }
 
 var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+// Serves wwwroot/script.js, the embeddable tracking snippet. Cross-origin by
+// nature (script tags are exempt from CORS); cached for a day so busy sites
+// do not hammer the API, short enough that fixes roll out fast.
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx => ctx.Context.Response.Headers.CacheControl = "public, max-age=86400",
+});
 
 // Ingestion. Body is text/plain JSON so browsers skip the CORS preflight.
 // Do not "fix" the content type; every analytics vendor does this (ADR 0002).

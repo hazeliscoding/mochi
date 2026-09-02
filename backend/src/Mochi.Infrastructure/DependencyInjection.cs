@@ -43,7 +43,7 @@ public static class DependencyInjection
         }
         else
         {
-            services.AddDbContext<MochiDbContext>(o => o.UseNpgsql(connectionString));
+            services.AddDbContext<MochiDbContext>(o => o.UseNpgsql(connectionString, npgsql => npgsql.EnableRetryOnFailure()));
             services.AddScoped<ISiteRepository, EfSiteRepository>();
             services.AddScoped<IAnalyticsEventStore, EfAnalyticsEventStore>();
             services.AddScoped<IRollupStore, EfRollupStore>();

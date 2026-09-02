@@ -9,7 +9,12 @@ namespace Mochi.Infrastructure.Persistence;
 public sealed class EfRollupStore(MochiDbContext db) : IRollupStore
 {
     /// <inheritdoc />
-    public async Task ReplaceDayAsync(RollupBatch batch, CancellationToken ct = default)
+    public Task ReplaceDayAsync(RollupBatch batch, CancellationToken ct = default)
+        // The explicit transaction must run through the execution strategy
+        // because the connection is configured with retry-on-failure.
+        => db.Database.CreateExecutionStrategy().ExecuteAsync(batch, (b, token) => ReplaceDayCoreAsync(b, token), ct);
+
+    private async Task ReplaceDayCoreAsync(RollupBatch batch, CancellationToken ct)
     {
         var site = batch.SiteId.Value;
         var date = batch.Date;
