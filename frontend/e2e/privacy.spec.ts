@@ -19,7 +19,9 @@ test('shows the live raw-event count from seeded beacons', async ({ page }) => {
   await page.goto('/privacy');
   await pickSeededSite(page);
   const holds = page.locator('.mo-card', { hasText: 'What Mochi holds right now' });
-  await expect(holds.getByText(summary.rawEventsHeld.toLocaleString('en-US'), { exact: true })).toBeVisible();
+  await expect(
+    holds.getByText(summary.rawEventsHeld.toLocaleString('en-US'), { exact: true }),
+  ).toBeVisible();
   await expect(holds).toContainText(`${summary.rawEventLifetimeDays} days`);
 });
 

@@ -6,10 +6,22 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
   host: { '(document:keydown.escape)': 'open() && closed.emit()' },
   template: `
     @if (open()) {
-      <div class="tr-scrim" style="display:flex;align-items:center;justify-content:center" (mousedown)="onScrim($event)">
-        <div class="tr-dialog" role="dialog" aria-modal="true" [attr.aria-label]="title()" [style.width]="width()">
+      <div
+        class="tr-scrim"
+        style="display:flex;align-items:center;justify-content:center"
+        (mousedown)="onScrim($event)"
+      >
+        <div
+          class="tr-dialog"
+          role="dialog"
+          aria-modal="true"
+          [attr.aria-label]="title()"
+          [style.width]="width()"
+        >
           @if (title()) {
-            <header><h2>{{ title() }}</h2></header>
+            <header>
+              <h2>{{ title() }}</h2>
+            </header>
           }
           <div class="tr-dialog__body">
             <ng-content />

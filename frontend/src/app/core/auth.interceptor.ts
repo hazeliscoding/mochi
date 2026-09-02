@@ -10,7 +10,11 @@ export const authRedirectInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   return next(req).pipe(
     catchError((err: unknown) => {
-      if (err instanceof HttpErrorResponse && err.status === 401 && !req.url.includes('/api/auth/')) {
+      if (
+        err instanceof HttpErrorResponse &&
+        err.status === 401 &&
+        !req.url.includes('/api/auth/')
+      ) {
         auth.reset();
         router.navigateByUrl('/login');
       }

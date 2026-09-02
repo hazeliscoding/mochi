@@ -3,7 +3,14 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Privacy } from './privacy';
 
-const SITE = { id: 'MC-1', name: 'demo', domain: 'demo.test', timezone: 'UTC', retention: '90d', snippet: '' };
+const SITE = {
+  id: 'MC-1',
+  name: 'demo',
+  domain: 'demo.test',
+  timezone: 'UTC',
+  retention: '90d',
+  snippet: '',
+};
 
 describe('Privacy', () => {
   let fixture: ComponentFixture<Privacy>;
@@ -22,14 +29,16 @@ describe('Privacy', () => {
   // helper drives effects with a task hop plus TestBed.tick() and answers only
   // its own calls.
   async function settle(): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve));
+    await new Promise((resolve) => setTimeout(resolve));
     TestBed.tick();
   }
 
   async function flushHappyPath(rawEventsHeld: number, oldest: string | null): Promise<void> {
     fixture.detectChanges();
     await settle();
-    http.expectOne('/api/sites').flush([{ site: SITE, viewsLast30d: 1, activeNow: 0, status: 'active' }]);
+    http
+      .expectOne('/api/sites')
+      .flush([{ site: SITE, viewsLast30d: 1, activeNow: 0, status: 'active' }]);
     await settle();
     http.expectOne('/api/sites/MC-1/privacy').flush({
       retention: '90d',
@@ -57,10 +66,12 @@ describe('Privacy', () => {
 
   it('persists a retention change via PUT and shows Saved', async () => {
     await flushHappyPath(5, '2026-08-01');
-    const radios = (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLInputElement>('input[type="radio"]');
+    const radios = (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLInputElement>(
+      'input[type="radio"]',
+    );
     radios[0].click();
 
-    const put = http.expectOne(r => r.method === 'PUT' && r.url === '/api/sites/MC-1');
+    const put = http.expectOne((r) => r.method === 'PUT' && r.url === '/api/sites/MC-1');
     expect(put.request.body).toEqual({ retention: '30d' });
     put.flush({ ...SITE, retention: '30d' });
     await settle();

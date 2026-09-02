@@ -5,7 +5,8 @@ import { ApiAuthStatus } from './api-types';
 
 /** Server {error} body when present, otherwise the fallback. */
 export function apiError(err: unknown, fallback: string): string {
-  if (err instanceof HttpErrorResponse && typeof err.error?.error === 'string') return err.error.error;
+  if (err instanceof HttpErrorResponse && typeof err.error?.error === 'string')
+    return err.error.error;
   return fallback;
 }
 
@@ -21,10 +22,12 @@ export class AuthService {
 
   /** Cached auth status; the first call also plants the XSRF cookie. */
   ensureStatus(): Promise<ApiAuthStatus> {
-    return (this.status ??= firstValueFrom(this.http.get<ApiAuthStatus>('/api/auth/status')).then(s => {
-      this.email.set(s.email ?? '');
-      return s;
-    }));
+    return (this.status ??= firstValueFrom(this.http.get<ApiAuthStatus>('/api/auth/status')).then(
+      (s) => {
+        this.email.set(s.email ?? '');
+        return s;
+      },
+    ));
   }
 
   async login(email: string, password: string): Promise<void> {

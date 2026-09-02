@@ -26,7 +26,7 @@ async function collect(userAgent: string, payload: object): Promise<void> {
 async function xsrfToken(ctx: APIRequestContext): Promise<string> {
   const status = await ctx.get(`${API}/api/auth/status`);
   if (!status.ok()) throw new Error(`auth status returned ${status.status()}`);
-  const cookie = (await ctx.storageState()).cookies.find(c => c.name === 'XSRF-TOKEN');
+  const cookie = (await ctx.storageState()).cookies.find((c) => c.name === 'XSRF-TOKEN');
   if (!cookie) throw new Error('no XSRF-TOKEN cookie after /api/auth/status');
   return cookie.value;
 }
@@ -47,7 +47,8 @@ export default async function globalSetup(): Promise<void> {
       headers,
       data: { email: E2E_EMAIL, password: E2E_PASSWORD },
     });
-    if (!login.ok()) throw new Error(`setup returned ${setup.status()}, login returned ${login.status()}`);
+    if (!login.ok())
+      throw new Error(`setup returned ${setup.status()}, login returned ${login.status()}`);
   }
 
   const resp = await ctx.post(`${API}/api/sites`, {
@@ -57,10 +58,25 @@ export default async function globalSetup(): Promise<void> {
   if (resp.status() !== 201) throw new Error(`site registration returned ${resp.status()}`);
   const site = (await resp.json()) as { id: string };
 
-  await collect(FIREFOX, { site: site.id, type: 'pageview', path: '/', referrer: 'https://news.ycombinator.com/item?id=1' });
+  await collect(FIREFOX, {
+    site: site.id,
+    type: 'pageview',
+    path: '/',
+    referrer: 'https://news.ycombinator.com/item?id=1',
+  });
   await collect(FIREFOX, { site: site.id, type: 'pageview', path: '/blog/shipping-kawaii-ui' });
-  await collect(FIREFOX, { site: site.id, type: 'event', name: 'signup', path: '/blog/shipping-kawaii-ui' });
-  await collect(IPHONE, { site: site.id, type: 'pageview', path: '/', referrer: 'https://duckduckgo.com/' });
+  await collect(FIREFOX, {
+    site: site.id,
+    type: 'event',
+    name: 'signup',
+    path: '/blog/shipping-kawaii-ui',
+  });
+  await collect(IPHONE, {
+    site: site.id,
+    type: 'pageview',
+    path: '/',
+    referrer: 'https://duckduckgo.com/',
+  });
   await collect(IPHONE, { site: site.id, type: 'pageview', path: '/projects' });
 
   process.env['MOCHI_E2E_SITE_ID'] = site.id;

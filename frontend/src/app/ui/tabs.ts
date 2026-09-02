@@ -21,7 +21,10 @@ export interface TabItem {
         >
           {{ t.label }}
           @if (t.count != null) {
-            <span style="margin-left:6px;font:var(--type-caption);color:var(--color-text-disabled)">{{ t.count }}</span>
+            <span
+              style="margin-left:6px;font:var(--type-caption);color:var(--color-text-disabled)"
+              >{{ t.count }}</span
+            >
           }
         </button>
       }

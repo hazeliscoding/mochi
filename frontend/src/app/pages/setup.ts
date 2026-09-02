@@ -13,36 +13,76 @@ const MIN_PASSWORD = 10;
   template: `
     <div class="mo-auth">
       <div class="mo-auth__card">
-        <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:18px">
+        <div
+          style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:18px"
+        >
           <svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true">
-            <circle cx="10" cy="10" r="8.5" fill="var(--color-accent-subtle)" stroke="var(--color-accent)" stroke-width="1.5" />
+            <circle
+              cx="10"
+              cy="10"
+              r="8.5"
+              fill="var(--color-accent-subtle)"
+              stroke="var(--color-accent)"
+              stroke-width="1.5"
+            />
             <circle cx="10" cy="10" r="3.2" fill="var(--color-accent)" />
           </svg>
           <span class="mo-brand" style="font:600 19px var(--font-display)">Mochi</span>
         </div>
-        <form class="mo-card" style="padding:22px;display:flex;flex-direction:column;gap:14px" (submit)="submit($event)">
+        <form
+          class="mo-card"
+          style="padding:22px;display:flex;flex-direction:column;gap:14px"
+          (submit)="submit($event)"
+        >
           <div>
             <div style="font:600 18px var(--font-display)">Set up Mochi</div>
-            <div style="font-size:13px;color:var(--color-text-secondary);margin-top:2px">Create the admin account for this install.</div>
+            <div style="font-size:13px;color:var(--color-text-secondary);margin-top:2px">
+              Create the admin account for this install.
+            </div>
           </div>
           <div>
             <label class="tr-label" for="setup-code">Setup code</label>
-            <input id="setup-code" type="text" class="tr-input mo-mono" autocomplete="off" [value]="code()" (input)="code.set(val($event))" />
-            <div class="tr-hint">Printed in the server's console log when Mochi starts with no accounts.</div>
+            <input
+              id="setup-code"
+              type="text"
+              class="tr-input mo-mono"
+              autocomplete="off"
+              [value]="code()"
+              (input)="code.set(val($event))"
+            />
+            <div class="tr-hint">
+              Printed in the server's console log when Mochi starts with no accounts.
+            </div>
           </div>
           <div>
             <label class="tr-label" for="setup-email">Email</label>
-            <input id="setup-email" type="email" class="tr-input" autocomplete="email" [value]="email()" (input)="email.set(val($event))" />
+            <input
+              id="setup-email"
+              type="email"
+              class="tr-input"
+              autocomplete="email"
+              [value]="email()"
+              (input)="email.set(val($event))"
+            />
           </div>
           <div>
             <label class="tr-label" for="setup-password">Password</label>
-            <input id="setup-password" type="password" class="tr-input" autocomplete="new-password" [value]="password()" (input)="password.set(val($event))" />
+            <input
+              id="setup-password"
+              type="password"
+              class="tr-input"
+              autocomplete="new-password"
+              [value]="password()"
+              (input)="password.set(val($event))"
+            />
             <div class="tr-hint">At least {{ minPassword }} characters.</div>
           </div>
           @if (error()) {
             <mo-inline-message tone="danger">{{ error() }}</mo-inline-message>
           }
-          <button type="submit" class="tr-btn tr-btn--primary" [disabled]="busy()">{{ busy() ? 'Creating account…' : 'Create account' }}</button>
+          <button type="submit" class="tr-btn tr-btn--primary" [disabled]="busy()">
+            {{ busy() ? 'Creating account…' : 'Create account' }}
+          </button>
         </form>
       </div>
     </div>

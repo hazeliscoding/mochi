@@ -49,13 +49,17 @@ export class Shell {
 
   /** Avatar initials from the account email's local part. */
   protected readonly initials = computed(() => {
-    const parts = this.auth.email().split('@')[0].split(/[._-]+/).filter(Boolean);
+    const parts = this.auth
+      .email()
+      .split('@')[0]
+      .split(/[._-]+/)
+      .filter(Boolean);
     const init = parts.length > 1 ? parts[0][0] + parts[1][0] : (parts[0] ?? '').slice(0, 2);
     return init.toUpperCase() || '?';
   });
 
   constructor() {
-    this.router.events.subscribe(e => {
+    this.router.events.subscribe((e) => {
       if (e instanceof NavigationEnd) this.main()?.nativeElement.scrollTo({ top: 0 });
     });
   }

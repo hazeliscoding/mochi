@@ -9,7 +9,12 @@ import { BarRow } from '../core/analytics-data.service';
     @for (r of rows(); track r.name) {
       <div class="mo-bar-row">
         <div class="mo-bar-row__fill" [style.width.%]="r.pct"></div>
-        <span class="mo-bar-row__name" [class.mo-mono]="mono()" [style.font-size]="mono() ? '12.5px' : null">{{ r.name }}</span>
+        <span
+          class="mo-bar-row__name"
+          [class.mo-mono]="mono()"
+          [style.font-size]="mono() ? '12.5px' : null"
+          >{{ r.name }}</span
+        >
         <span class="mo-bar-row__vals">
           @if (showPct()) {
             <span class="mo-bar-row__pct">{{ r.pct }}%</span>

@@ -14,13 +14,19 @@ import { StatusIndicator } from '../ui/status-indicator';
   imports: [Metric, StatusIndicator, ButtonGroup, DataTable, PageState],
   template: `
     <section>
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:4px 0 20px">
+      <div
+        style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:4px 0 20px"
+      >
         <div>
           <h1 class="mo-page-title">{{ data.site() }}</h1>
-          <div style="font-size:13px;color:var(--color-text-secondary);margin-top:5px">{{ data.rangeLabel() }} · {{ compareLabel() }}</div>
+          <div style="font-size:13px;color:var(--color-text-secondary);margin-top:5px">
+            {{ data.rangeLabel() }} · {{ compareLabel() }}
+          </div>
         </div>
         @if (state() === 'ready') {
-          <mo-status [tone]="data.hasData() ? 'success' : 'warning'">{{ data.hasData() ? 'Receiving data' : 'Waiting for data' }}</mo-status>
+          <mo-status [tone]="data.hasData() ? 'success' : 'warning'">{{
+            data.hasData() ? 'Receiving data' : 'Waiting for data'
+          }}</mo-status>
         }
       </div>
 
@@ -41,23 +47,60 @@ import { StatusIndicator } from '../ui/status-indicator';
           <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px">
             <span class="mo-card-label">Trend</span>
             <div class="mo-spacer"></div>
-            <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)"><span style="width:16px;height:0;border-top:2px solid var(--color-accent)"></span>This period</span>
+            <span
+              style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)"
+              ><span style="width:16px;height:0;border-top:2px solid var(--color-accent)"></span
+              >This period</span
+            >
             @if (data.prevSeries().length) {
-              <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)"><span style="width:16px;height:0;border-top:2px dashed var(--color-text-disabled)"></span>Previous</span>
+              <span
+                style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)"
+                ><span
+                  style="width:16px;height:0;border-top:2px dashed var(--color-text-disabled)"
+                ></span
+                >Previous</span
+              >
             }
-            <mo-button-group [items]="metricItems" [value]="data.chartMetric()" (valueChange)="setMetric($event)" />
+            <mo-button-group
+              [items]="metricItems"
+              [value]="data.chartMetric()"
+              (valueChange)="setMetric($event)"
+            />
           </div>
-          <svg viewBox="0 0 760 230" style="width:100%;height:auto;display:block" role="img" [attr.aria-label]="chartAria()">
+          <svg
+            viewBox="0 0 760 230"
+            style="width:100%;height:auto;display:block"
+            role="img"
+            [attr.aria-label]="chartAria()"
+          >
             <line x1="8" y1="8" x2="752" y2="8" stroke="var(--color-border-subtle)" />
             <line x1="8" y1="111" x2="752" y2="111" stroke="var(--color-border-subtle)" />
             <line x1="8" y1="214" x2="752" y2="214" stroke="var(--color-border)" />
             <path [attr.d]="chart().area" fill="var(--color-accent-subtle)" opacity="0.65" />
-            <path [attr.d]="chart().prev" fill="none" stroke="var(--color-text-disabled)" stroke-width="1.5" stroke-dasharray="4 4" />
-            <path [attr.d]="chart().line" fill="none" stroke="var(--color-accent)" stroke-width="2" stroke-linejoin="round" />
-            <text x="10" y="22" style="font:11px var(--font-ui);fill:var(--color-text-disabled)">{{ chart().yMax }}</text>
-            <text x="10" y="125" style="font:11px var(--font-ui);fill:var(--color-text-disabled)">{{ chart().yMid }}</text>
+            <path
+              [attr.d]="chart().prev"
+              fill="none"
+              stroke="var(--color-text-disabled)"
+              stroke-width="1.5"
+              stroke-dasharray="4 4"
+            />
+            <path
+              [attr.d]="chart().line"
+              fill="none"
+              stroke="var(--color-accent)"
+              stroke-width="2"
+              stroke-linejoin="round"
+            />
+            <text x="10" y="22" style="font:11px var(--font-ui);fill:var(--color-text-disabled)">
+              {{ chart().yMax }}
+            </text>
+            <text x="10" y="125" style="font:11px var(--font-ui);fill:var(--color-text-disabled)">
+              {{ chart().yMid }}
+            </text>
           </svg>
-          <div style="display:flex;justify-content:space-between;padding:6px 4px 4px;font-size:11px;color:var(--color-text-disabled)">
+          <div
+            style="display:flex;justify-content:space-between;padding:6px 4px 4px;font-size:11px;color:var(--color-text-disabled)"
+          >
             @for (l of axisLabels(); track $index) {
               <span>{{ l }}</span>
             }
@@ -66,48 +109,84 @@ import { StatusIndicator } from '../ui/status-indicator';
 
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px">
           <div class="mo-card" style="display:flex;flex-direction:column">
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px">
+            <div
+              style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px"
+            >
               <span class="mo-card-label">Top pages</span>
-              <button type="button" class="tr-btn tr-btn--ghost tr-btn--sm" (click)="go('/pages')">All pages</button>
+              <button type="button" class="tr-btn tr-btn--ghost tr-btn--sm" (click)="go('/pages')">
+                All pages
+              </button>
             </div>
-            <mo-data-table [columns]="miniPageCols" [rows]="miniPageRows()" [clickable]="true" (rowClick)="openPage($event)" />
+            <mo-data-table
+              [columns]="miniPageCols"
+              [rows]="miniPageRows()"
+              [clickable]="true"
+              (rowClick)="openPage($event)"
+            />
           </div>
           <div class="mo-card">
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px">
+            <div
+              style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px"
+            >
               <span class="mo-card-label">Traffic sources</span>
-              <button type="button" class="tr-btn tr-btn--ghost tr-btn--sm" (click)="go('/sources')">Sources</button>
+              <button
+                type="button"
+                class="tr-btn tr-btn--ghost tr-btn--sm"
+                (click)="go('/sources')"
+              >
+                Sources
+              </button>
             </div>
             <div style="padding:2px 8px 8px">
               @for (r of data.channelRows(); track r.name) {
                 <div class="mo-bar-row">
                   <div class="mo-bar-row__fill" [style.width.%]="r.pct"></div>
                   <span class="mo-bar-row__name">{{ r.name }}</span>
-                  <span class="mo-bar-row__vals"><span class="mo-bar-row__pct">{{ r.pct }}%</span><span class="mo-bar-row__val">{{ r.val }}</span></span>
+                  <span class="mo-bar-row__vals"
+                    ><span class="mo-bar-row__pct">{{ r.pct }}%</span
+                    ><span class="mo-bar-row__val">{{ r.val }}</span></span
+                  >
                 </div>
               }
               @if (data.topSourceRows().length) {
                 <div style="height:1px;background:var(--color-border-subtle);margin:8px 2px"></div>
                 <div class="mo-card-label" style="padding:4px 10px 6px">Top sources</div>
                 @for (r of data.topSourceRows(); track r.name) {
-                  <div class="mo-kv-row"><span>{{ r.name }}</span><span>{{ r.val }}</span></div>
+                  <div class="mo-kv-row">
+                    <span>{{ r.name }}</span
+                    ><span>{{ r.val }}</span>
+                  </div>
                 }
               }
             </div>
           </div>
           <div class="mo-card">
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px">
+            <div
+              style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px"
+            >
               <span class="mo-card-label">Visitor geography</span>
-              <button type="button" class="tr-btn tr-btn--ghost tr-btn--sm" (click)="go('/geography')">Geography</button>
+              <button
+                type="button"
+                class="tr-btn tr-btn--ghost tr-btn--sm"
+                (click)="go('/geography')"
+              >
+                Geography
+              </button>
             </div>
             <div style="padding:2px 8px 8px">
               @for (r of countryRows(); track r.name) {
                 <div class="mo-bar-row">
                   <div class="mo-bar-row__fill" [style.width.%]="r.pct"></div>
                   <span class="mo-bar-row__name">{{ r.name }}</span>
-                  <span class="mo-bar-row__vals"><span class="mo-bar-row__pct">{{ r.pct }}%</span><span class="mo-bar-row__val">{{ r.val }}</span></span>
+                  <span class="mo-bar-row__vals"
+                    ><span class="mo-bar-row__pct">{{ r.pct }}%</span
+                    ><span class="mo-bar-row__val">{{ r.val }}</span></span
+                  >
                 </div>
               }
-              <div style="padding:8px 10px 4px;font-size:12px;color:var(--color-text-secondary)">Locations are generalized to country level.</div>
+              <div style="padding:8px 10px 4px;font-size:12px;color:var(--color-text-secondary)">
+                Locations are generalized to country level.
+              </div>
             </div>
           </div>
           <div class="mo-card">
@@ -120,20 +199,33 @@ import { StatusIndicator } from '../ui/status-indicator';
               </div>
               <div style="display:flex;gap:18px;margin-top:10px;font-size:13px;flex-wrap:wrap">
                 @for (d of data.deviceClasses(); track d.name) {
-                  <span><span class="mo-dot" [style.background]="d.color"></span>{{ d.name }} {{ d.pct }}%</span>
+                  <span
+                    ><span class="mo-dot" [style.background]="d.color"></span>{{ d.name }}
+                    {{ d.pct }}%</span
+                  >
                 }
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 20px;margin-top:16px">
                 <div>
                   <div class="mo-card-label" style="padding-bottom:6px">Browsers</div>
                   @for (r of data.browserTop(); track r.name) {
-                    <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px"><span>{{ r.name }}</span><span class="mo-muted mo-num">{{ r.pct }}%</span></div>
+                    <div
+                      style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px"
+                    >
+                      <span>{{ r.name }}</span
+                      ><span class="mo-muted mo-num">{{ r.pct }}%</span>
+                    </div>
                   }
                 </div>
                 <div>
                   <div class="mo-card-label" style="padding-bottom:6px">Operating systems</div>
                   @for (r of data.osTop(); track r.name) {
-                    <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px"><span>{{ r.name }}</span><span class="mo-muted mo-num">{{ r.pct }}%</span></div>
+                    <div
+                      style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px"
+                    >
+                      <span>{{ r.name }}</span
+                      ><span class="mo-muted mo-num">{{ r.pct }}%</span>
+                    </div>
                   }
                 </div>
               </div>
@@ -199,13 +291,16 @@ export class Overview {
   ];
 
   protected readonly miniPageRows = computed(() =>
-    this.data.pages().slice(0, 5).map(p => ({
-      id: p.id,
-      page: p.id,
-      v: fmt(p.v),
-      pv: fmt(p.pv),
-      bounce: p.bounce + '%',
-    })),
+    this.data
+      .pages()
+      .slice(0, 5)
+      .map((p) => ({
+        id: p.id,
+        page: p.id,
+        v: fmt(p.v),
+        pv: fmt(p.pv),
+        bounce: p.bounce + '%',
+      })),
   );
 
   protected readonly countryRows = computed(() => this.data.geoRows().slice(0, 7));

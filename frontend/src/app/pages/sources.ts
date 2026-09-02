@@ -53,35 +53,73 @@ const GROUP_COLS: Record<string, TableColumn[]> = {
             <span class="mo-card-label">Traffic by channel</span>
             <div class="mo-spacer"></div>
             @for (l of legend(); track l.name) {
-              <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)">
-                <svg width="18" height="6" aria-hidden="true"><line x1="0" y1="3" x2="18" y2="3" [attr.stroke]="l.color" stroke-width="2" [attr.stroke-dasharray]="l.dash" /></svg>
+              <span
+                style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)"
+              >
+                <svg width="18" height="6" aria-hidden="true">
+                  <line
+                    x1="0"
+                    y1="3"
+                    x2="18"
+                    y2="3"
+                    [attr.stroke]="l.color"
+                    stroke-width="2"
+                    [attr.stroke-dasharray]="l.dash"
+                  />
+                </svg>
                 {{ l.name }} · {{ l.total }}
               </span>
             }
           </div>
-          <svg viewBox="0 0 760 190" style="width:100%;height:auto;display:block" role="img" aria-label="Daily visits by channel over the selected period">
+          <svg
+            viewBox="0 0 760 190"
+            style="width:100%;height:auto;display:block"
+            role="img"
+            aria-label="Daily visits by channel over the selected period"
+          >
             <line x1="8" y1="174" x2="752" y2="174" stroke="var(--color-border)" />
             @for (l of legend(); track l.name) {
-              <path [attr.d]="l.line" fill="none" [attr.stroke]="l.color" stroke-width="2" [attr.stroke-dasharray]="l.dash" />
+              <path
+                [attr.d]="l.line"
+                fill="none"
+                [attr.stroke]="l.color"
+                stroke-width="2"
+                [attr.stroke-dasharray]="l.dash"
+              />
             }
           </svg>
-          <div style="display:flex;justify-content:space-between;padding:6px 4px 4px;font-size:11px;color:var(--color-text-disabled)">
+          <div
+            style="display:flex;justify-content:space-between;padding:6px 4px 4px;font-size:11px;color:var(--color-text-disabled)"
+          >
             @for (a of axisLabels(); track $index) {
               <span>{{ a }}</span>
             }
           </div>
-          <div style="font-size:11px;color:var(--color-text-disabled);padding:0 4px 6px">Channel lines are scaled from period totals; exact daily channel series are coming soon.</div>
+          <div style="font-size:11px;color:var(--color-text-disabled);padding:0 4px 6px">
+            Channel lines are scaled from period totals; exact daily channel series are coming soon.
+          </div>
         </div>
-        <mo-tabs [tabs]="tabs" [value]="data.sourceGroup()" (valueChange)="data.sourceGroup.set($event)" />
+        <mo-tabs
+          [tabs]="tabs"
+          [value]="data.sourceGroup()"
+          (valueChange)="data.sourceGroup.set($event)"
+        />
         <div class="mo-card" style="border-top:none;border-radius:0 0 6px 6px;overflow-x:auto">
           @if (tableRows().length) {
             <mo-data-table [columns]="tableCols()" [rows]="tableRows()" />
           } @else {
-            <div style="padding:24px 16px;text-align:center;font-size:13px;color:var(--color-text-secondary)">Nothing in this group for the selected period.</div>
+            <div
+              style="padding:24px 16px;text-align:center;font-size:13px;color:var(--color-text-secondary)"
+            >
+              Nothing in this group for the selected period.
+            </div>
           }
         </div>
         <div style="margin-top:12px">
-          <mo-inline-message tone="info">Sources are aggregated by domain. Mochi never records which visitor arrived from where.</mo-inline-message>
+          <mo-inline-message tone="info"
+            >Sources are aggregated by domain. Mochi never records which visitor arrived from
+            where.</mo-inline-message
+          >
         </div>
       }
     </section>
@@ -107,9 +145,9 @@ export class Sources {
   protected readonly legend = computed(() => {
     const series = this.data.series();
     const max = Math.max(1, ...series) * 1.06;
-    return this.data.channelRows().map(r => {
+    return this.data.channelRows().map((r) => {
       const style = CHANNEL_STYLE[r.name] ?? { color: 'var(--color-text-disabled)', dash: '0' };
-      const scaled = series.map(v => (v * r.pct) / 100);
+      const scaled = series.map((v) => (v * r.pct) / 100);
       return {
         name: r.name,
         total: r.val,
@@ -120,9 +158,11 @@ export class Sources {
     });
   });
 
-  protected readonly tableCols = computed(() => GROUP_COLS[this.data.sourceGroup()] ?? GROUP_COLS['referrers']);
+  protected readonly tableCols = computed(
+    () => GROUP_COLS[this.data.sourceGroup()] ?? GROUP_COLS['referrers'],
+  );
   protected readonly tableRows = computed(() =>
-    (this.data.sourceGroupRes.value() ?? []).map(r => ({
+    (this.data.sourceGroupRes.value() ?? []).map((r) => ({
       id: r.name,
       name: r.name,
       v: fmt(r.count),

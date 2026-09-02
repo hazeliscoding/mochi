@@ -25,8 +25,15 @@ import { PageState } from '../ui/page-state';
           <div style="display:flex;gap:28px;margin-top:12px;flex-wrap:wrap">
             @for (d of data.deviceClasses(); track d.name) {
               <div>
-                <div style="font-size:13px;color:var(--color-text-secondary)"><span class="mo-dot" [style.background]="d.color"></span>{{ d.name }}</div>
-                <div class="mo-num" style="font:600 20px var(--font-display);margin-top:2px">{{ d.pct }}% <span style="font:400 13px var(--font-ui);color:var(--color-text-secondary)">{{ d.val }}</span></div>
+                <div style="font-size:13px;color:var(--color-text-secondary)">
+                  <span class="mo-dot" [style.background]="d.color"></span>{{ d.name }}
+                </div>
+                <div class="mo-num" style="font:600 20px var(--font-display);margin-top:2px">
+                  {{ d.pct }}%
+                  <span style="font:400 13px var(--font-ui);color:var(--color-text-secondary)">{{
+                    d.val
+                  }}</span>
+                </div>
               </div>
             }
           </div>
@@ -45,7 +52,9 @@ import { PageState } from '../ui/page-state';
             </div>
           </div>
         </div>
-        <div style="margin-top:12px;font-size:12px;color:var(--color-text-secondary)">Device details come from the browser's own reported user agent, never from fingerprinting.</div>
+        <div style="margin-top:12px;font-size:12px;color:var(--color-text-secondary)">
+          Device details come from the browser's own reported user agent, never from fingerprinting.
+        </div>
       }
     </section>
   `,

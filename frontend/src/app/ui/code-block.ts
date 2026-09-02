@@ -7,7 +7,12 @@ import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core
     <div class="tr-code">
       <header>
         <span>{{ filename() }}</span>
-        <button type="button" class="tr-btn tr-btn--ghost tr-btn--sm" style="height:22px" (click)="copy()">
+        <button
+          type="button"
+          class="tr-btn tr-btn--ghost tr-btn--sm"
+          style="height:22px"
+          (click)="copy()"
+        >
           {{ copied() ? 'Copied' : 'Copy' }}
         </button>
       </header>

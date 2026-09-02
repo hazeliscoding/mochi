@@ -6,7 +6,12 @@ import { sparkD } from '../core/chart';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { style: 'display:inline-flex;line-height:0' },
   template: `
-    <svg [attr.viewBox]="'0 0 ' + width() + ' ' + height()" [style.width.px]="width()" [style.height.px]="height()" aria-hidden="true">
+    <svg
+      [attr.viewBox]="'0 0 ' + width() + ' ' + height()"
+      [style.width.px]="width()"
+      [style.height.px]="height()"
+      aria-hidden="true"
+    >
       <path [attr.d]="d()" fill="none" stroke="var(--color-accent)" stroke-width="1.5" />
     </svg>
   `,

@@ -7,7 +7,11 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     <div class="tr-metric__label">{{ label() }}</div>
     <div class="tr-metric__value">{{ value() }}</div>
     @if (delta()) {
-      <div class="tr-metric__delta" [class.tr-metric__delta--up]="dir() === 'up'" [class.tr-metric__delta--down]="dir() === 'down'">
+      <div
+        class="tr-metric__delta"
+        [class.tr-metric__delta--up]="dir() === 'up'"
+        [class.tr-metric__delta--down]="dir() === 'down'"
+      >
         {{ delta() }}
       </div>
     }

@@ -15,7 +15,10 @@ import { TableColumn } from '../core/analytics-data.service';
       </thead>
       <tbody>
         @for (r of rows(); track r['id'] ?? $index) {
-          <tr [style.cursor]="clickable() ? 'pointer' : null" (click)="clickable() && rowClick.emit(r)">
+          <tr
+            [style.cursor]="clickable() ? 'pointer' : null"
+            (click)="clickable() && rowClick.emit(r)"
+          >
             @for (c of columns(); track c.key) {
               <td [class.tr-table__num]="c.numeric">{{ r[c.key] }}</td>
             }

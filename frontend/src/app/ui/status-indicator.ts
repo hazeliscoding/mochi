@@ -8,5 +8,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 })
 export class StatusIndicator {
   readonly tone = input<'success' | 'warning' | 'danger' | 'info' | 'neutral'>('neutral');
-  readonly cls = computed(() => 'tr-status' + (this.tone() !== 'neutral' ? ' tr-status--' + this.tone() : ''));
+  readonly cls = computed(
+    () => 'tr-status' + (this.tone() !== 'neutral' ? ' tr-status--' + this.tone() : ''),
+  );
 }

@@ -74,9 +74,21 @@ test('settings shows the site snippet and saves', async ({ page }) => {
 
 test('every page renders without console errors', async ({ page }) => {
   const errors: string[] = [];
-  page.on('pageerror', e => errors.push(e.message));
+  page.on('pageerror', (e) => errors.push(e.message));
 
-  for (const route of ['/overview', '/realtime', '/pages', '/sources', '/geography', '/devices', '/events', '/goals', '/websites', '/privacy', '/settings']) {
+  for (const route of [
+    '/overview',
+    '/realtime',
+    '/pages',
+    '/sources',
+    '/geography',
+    '/devices',
+    '/events',
+    '/goals',
+    '/websites',
+    '/privacy',
+    '/settings',
+  ]) {
     await page.goto(route);
     await expect(page.locator('.mo-page-title, h1').first()).toBeVisible();
   }
