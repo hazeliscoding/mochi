@@ -104,14 +104,17 @@ hash (0001), the API contracts (0002), and the storage/rollup model (0003).
       radios that persist, and the untrue "privacy thresholds" claim replaced
       with honest day-scoped-hash copy
 
-## v0.7 — Hardening
+## v0.7 — Hardening ✅
 
 > You can now: trust a green build to mean the product works.
 
-- [ ] Unit tests for aggregation logic; component tests for UI (Vitest is wired
-      up, only the default spec exists)
-- [ ] E2E smoke via headless Chrome
-- [ ] CI pipeline (build, test, lint)
+- [x] Unit tests for aggregation logic (sessionizer, rollup/retention purge)
+      and component tests for UI (accumulated across v0.2 to v0.6)
+- [x] E2E via Playwright over the full stack, 15 tests (exceeds the headless
+      Chrome smoke this called for)
+- [x] CI pipeline on push and PR: backend tests with Testcontainers Postgres,
+      frontend prettier check + build + unit tests, full e2e with failure
+      traces uploaded; first run green
 
 ## v1.0 — Self-hostable release, deployed for real
 
