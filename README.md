@@ -21,7 +21,9 @@ daily, so cross-day tracking is cryptographically impossible, not just promised.
    tables — the only long-term data. Deleting a site deletes everything.
 
 Decisions are documented as ADRs in [docs/adr/](docs/adr/): the visitor hash
-(0001), API contracts (0002), storage and rollups (0003), auth (0004).
+(0001), API contracts (0002), storage and rollups (0003), auth (0004). The UI
+comes from the [Mochi Analytics design](https://claude.ai/design/p/e8eb9652-558b-4336-a473-0543ed5bef86)
+on the Trellis design system (`design-reference/` keeps the imported source).
 
 ## Stack
 
