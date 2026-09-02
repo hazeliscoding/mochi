@@ -8,5 +8,6 @@
   <Folder Name="/tests/">
     <Project Path="tests/Mochi.Application.Tests/Mochi.Application.Tests.csproj" />
     <Project Path="tests/Mochi.Domain.Tests/Mochi.Domain.Tests.csproj" />
+    <Project Path="tests/Mochi.Integration.Tests/Mochi.Integration.Tests.csproj" />
   </Folder>
 </Solution>

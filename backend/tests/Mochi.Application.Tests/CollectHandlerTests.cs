@@ -22,7 +22,7 @@ public class CollectHandlerTests
     public CollectHandlerTests()
     {
         var clock = new FixedClock();
-        _handler = new CollectHandler(_sites, _events, new RotatingDailySaltProvider(clock), new NaiveUserAgentParser(), new NullGeoLocator(), clock);
+        _handler = new CollectHandler(_sites, _events, new RotatingDailySaltProvider(clock), new UaParserUserAgentParser(), new NullGeoLocator(), clock);
         _register = new RegisterSiteHandler(_sites, clock);
     }
 

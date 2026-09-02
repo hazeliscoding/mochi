@@ -20,19 +20,25 @@ hash (0001), the API contracts (0002), and the storage/rollup model (0003).
 - [x] Mock data layer (`analytics-data.service.ts`) ported 1:1 from the approved
       design — deliberately shaped as the seam for the future backend
 
-## v0.2 — Data in (in progress)
+## v0.2 — Data in ✅
 
-> You can now: send a pageview to a running API and see it stored (in memory).
+> You can now: send a pageview to a running API and see it stored in Postgres,
+> rolled up into daily aggregates.
 
 - [x] Scaffold .NET API project (`backend/`, DDD: Domain / Application /
       Infrastructure / Api, tests wired up)
 - [x] Event ingestion endpoint (`POST /api/collect`) — pageviews + custom
       events, scrubbed per ADR 0002, day-salted visitor hash per ADR 0001
 - [x] Website CRUD (register site, generate site ID, snippet in response)
-- [ ] Postgres + EF Core (replace the in-memory adapters; schema per ADR 0003)
-- [ ] Rollup/purge job (sessionize closed days into `daily_*` tables, rotate
-      salt, purge raw events after 7 days)
-- [ ] Real user-agent parser and GeoIP lookup (current ones are placeholders)
+- [x] Postgres + EF Core (schema per ADR 0003, migrations, in-memory adapters
+      remain the no-connection-string dev fallback)
+- [x] Rollup/purge job (sessionizes closed days into `daily_*` tables at 00:05
+      UTC, purges raw events after 7 days and rollups per site retention;
+      manual rerun via `POST /api/admin/rollup/{date}`)
+- [x] Real user-agent parser (uap-core); GeoIP via MaxMind, active once a
+      GeoLite2-Country.mmdb path is configured (`Mochi:GeoIpDatabase`)
+- [x] Integration tests: Testcontainers Postgres + real HTTP happy paths
+      (register, collect, rollup, cascade delete)
 
 ## v0.3 — Tracking script
 

@@ -18,6 +18,9 @@ public readonly record struct VisitorHash
     /// <summary>The 8-byte hash as an unsigned integer.</summary>
     public ulong Value { get; }
 
+    /// <summary>Rehydrates a stored hash. For persistence adapters only; use <see cref="Compute"/> at ingest.</summary>
+    public static VisitorHash FromValue(ulong value) => new(value);
+
     /// <summary>Computes the hash for one visitor on one site under the current daily salt.</summary>
     public static VisitorHash Compute(ReadOnlySpan<byte> dailySalt, SiteId site, string ipAddress, string userAgent)
     {

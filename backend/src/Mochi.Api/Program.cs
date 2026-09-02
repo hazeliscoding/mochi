@@ -1,14 +1,23 @@
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Mochi.Api.Contracts;
 using Mochi.Application.Abstractions;
 using Mochi.Application.Collect;
+using Mochi.Application.Rollups;
 using Mochi.Application.Sites;
 using Mochi.Domain.Sites;
 using Mochi.Infrastructure;
+using Mochi.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddMochi();
+builder.Services.AddMochi(builder.Configuration);
 var app = builder.Build();
+
+if (!string.IsNullOrWhiteSpace(app.Configuration.GetConnectionString("Mochi")))
+{
+    using var scope = app.Services.CreateScope();
+    await scope.ServiceProvider.GetRequiredService<MochiDbContext>().Database.MigrateAsync();
+}
 
 var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
@@ -86,13 +95,27 @@ app.MapPut("/api/sites/{id}", async (string id, SiteRequest req, ISiteRepository
     return Results.Ok(SiteResponse.From(site, snippetBaseUrl));
 });
 
-// Deleting a site deletes all its data. The Privacy Center promise depends on
-// this cascading once real storage exists (ADR 0002).
-app.MapDelete("/api/sites/{id}", async (string id, ISiteRepository sites, CancellationToken ct) =>
+// Deleting a site deletes all its data immediately: raw events, rollups, then
+// the site row. The Privacy Center promise depends on this (ADR 0002).
+app.MapDelete("/api/sites/{id}", async (string id, ISiteRepository sites, IAnalyticsEventStore events, IRollupStore rollups, CancellationToken ct) =>
 {
     if (!SiteId.TryParse(id, out var siteId)) return Results.NotFound();
+    await events.PurgeSiteAsync(siteId, ct);
+    await rollups.PurgeSiteAsync(siteId, ct);
     await sites.RemoveAsync(siteId, ct);
     return Results.NoContent();
 });
 
+// Manual rollup rerun per ADR 0003. Unauthenticated until v0.5, so keep the
+// API bound to localhost in the meantime.
+app.MapPost("/api/admin/rollup/{date}", async (string date, RollupJob job, CancellationToken ct) =>
+{
+    if (!DateOnly.TryParseExact(date, "yyyy-MM-dd", out var day)) return Results.BadRequest("date must be yyyy-MM-dd");
+    await job.RunForDayAsync(day, ct);
+    return Results.Ok();
+});
+
 app.Run();
+
+/// <summary>Marker so WebApplicationFactory can host the app in integration tests.</summary>
+public partial class Program;
