@@ -1,5 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 48 48">
   <title>Mochi</title>
-  <circle cx="24" cy="24" r="20" fill="#1D2F2D" stroke="#6FB8B1" stroke-width="3"/>
-  <circle cx="24" cy="24" r="7.5" fill="#6FB8B1"/>
+  <path d="M24 8.5 C 33.5 8.5, 41 15, 41.5 25 C 41.9 33.5, 35 40, 24 40 C 13 40, 6.1 33.5, 6.5 25 C 7 15, 14.5 8.5, 24 8.5 Z"
+        fill="#8FD0C9" stroke="#4E9C94" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M15 14.5 C 17.5 12.2, 21 11, 24 11" fill="none" stroke="#C9EAE6" stroke-width="2.4" stroke-linecap="round"/>
+  <circle cx="18" cy="25.5" r="2.1" fill="#23423E"/>
+  <circle cx="30" cy="25.5" r="2.1" fill="#23423E"/>
+  <path d="M21.6 29.5 Q 24 31.8, 26.4 29.5" fill="none" stroke="#23423E" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="13.6" cy="29.2" r="2.2" fill="#F5A9B8" opacity="0.8"/>
+  <circle cx="34.4" cy="29.2" r="2.2" fill="#F5A9B8" opacity="0.8"/>
 </svg>
