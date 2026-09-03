@@ -119,7 +119,7 @@ export class Setup {
     this.error.set('');
     try {
       await this.auth.setup(code, email, this.password());
-      this.router.navigateByUrl('/');
+      this.router.navigateByUrl('/overview');
     } catch (err) {
       this.error.set(apiError(err, 'Could not complete setup. Try again.'));
     } finally {

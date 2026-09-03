@@ -77,6 +77,7 @@ test('every page renders without console errors', async ({ page }) => {
   page.on('pageerror', (e) => errors.push(e.message));
 
   for (const route of [
+    '/',
     '/overview',
     '/realtime',
     '/pages',

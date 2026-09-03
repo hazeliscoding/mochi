@@ -18,7 +18,7 @@ export const loginGuard: CanActivateFn = async () => {
   const router = inject(Router);
   const s = await auth.ensureStatus();
   if (s.needsSetup) return router.parseUrl('/setup');
-  if (s.authenticated) return router.parseUrl('/');
+  if (s.authenticated) return router.parseUrl('/overview');
   return true;
 };
 
@@ -28,5 +28,5 @@ export const setupGuard: CanActivateFn = async () => {
   const router = inject(Router);
   const s = await auth.ensureStatus();
   if (s.needsSetup) return true;
-  return router.parseUrl(s.authenticated ? '/' : '/login');
+  return router.parseUrl(s.authenticated ? '/overview' : '/login');
 };

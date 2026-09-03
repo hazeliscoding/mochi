@@ -1,0 +1,50 @@
+/* Landing page. Trellis tokens only; scoped to this component. */
+
+.landing{min-height:100vh;display:flex;flex-direction:column;background:var(--color-surface-canvas);color:var(--color-text-primary);font-family:var(--font-ui);font-size:15px}
+.landing a.tr-btn{text-decoration:none}
+
+.landing-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;height:56px;padding:0 clamp(14px,4vw,40px);background:var(--color-surface);border-bottom:1px solid var(--color-border)}
+.landing-brand{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:inherit;flex:none}
+.landing-brand__name{font:600 17px var(--font-display);letter-spacing:-.01em}
+.landing-nav{display:flex;gap:18px;margin-left:10px}
+.landing-nav a{font:var(--type-ui);color:var(--color-text-secondary);text-decoration:none;transition:color var(--motion-state)}
+.landing-nav a:hover{color:var(--color-text-primary)}
+.landing-spacer{flex:1}
+
+.landing-main{width:100%;max-width:1040px;margin:0 auto;padding:0 clamp(14px,4vw,40px) 56px;box-sizing:border-box;flex:1}
+
+.hero{text-align:center;padding:clamp(40px,7vw,72px) 0 0}
+.hero__mascot{width:clamp(72px,12vw,96px);height:auto}
+.hero h1{margin:18px 0 0;font:600 clamp(29px,5.4vw,46px)/1.12 var(--font-display);letter-spacing:-.02em}
+.hero__sub{margin:14px auto 0;max-width:560px;font-size:clamp(14px,2.2vw,16px);line-height:1.6;color:var(--color-text-secondary)}
+.hero__ctas{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:26px}
+.hero__shot{margin:clamp(32px,6vw,52px) auto 0;border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden;background:var(--color-surface);box-shadow:var(--shadow-modal)}
+.hero__shot img{display:block;width:100%;height:auto}
+
+.landing-section{padding:clamp(40px,6vw,60px) 0 0;margin-top:clamp(40px,6vw,60px);border-top:1px solid var(--color-border-subtle);scroll-margin-top:70px}
+.landing-eyebrow{font:var(--type-label);letter-spacing:var(--tracking-label);text-transform:uppercase;color:var(--color-accent)}
+.landing-section h2{margin:8px 0 0;font:600 clamp(22px,3.4vw,28px)/1.2 var(--font-display);letter-spacing:-.01em}
+.landing-lede{margin:10px 0 0;max-width:620px;font-size:14px;line-height:1.6;color:var(--color-text-secondary)}
+
+.feature-grid,.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:24px}
+.feature-card,.step{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:16px 18px}
+.feature-card h3,.step h3{margin:10px 0 4px;font:600 15px var(--font-ui)}
+.feature-card p,.step p{margin:0;font-size:13px;line-height:1.55;color:var(--color-text-secondary)}
+.feature-card__icon{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:var(--radius-md);background:var(--color-accent-subtle);color:var(--color-accent)}
+.step__num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:var(--radius-full);background:var(--color-accent);color:var(--color-on-accent);font:600 13px var(--font-ui)}
+
+.privacy-card{margin-top:20px;max-width:640px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:18px 22px}
+.privacy-card p{margin:0;font-size:14px;line-height:1.6}
+.privacy-card p+p{margin-top:12px}
+
+.code-block{margin:20px 0 0;max-width:440px;font:var(--type-code);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:13px 16px;overflow-x:auto}
+.code-block__prompt{color:var(--color-text-disabled);user-select:none}
+.selfhost-links{display:flex;align-items:center;flex-wrap:wrap;gap:16px;margin-top:16px}
+.landing-link{font:var(--type-ui);color:var(--color-accent);text-decoration:none}
+.landing-link:hover{text-decoration:underline}
+
+.landing-footer{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:30px clamp(14px,4vw,40px) 36px;border-top:1px solid var(--color-border-subtle);font-size:13px;color:var(--color-text-secondary)}
+.landing-footer p{margin:0;line-height:1.5}
+.landing-footer__strong{color:var(--color-accent);font-weight:600}
+
+@media (max-width:560px){.landing-nav{display:none}}

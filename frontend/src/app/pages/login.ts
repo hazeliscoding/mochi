@@ -94,7 +94,7 @@ export class Login {
     this.error.set('');
     try {
       await this.auth.login(email, this.password());
-      this.router.navigateByUrl('/');
+      this.router.navigateByUrl('/overview');
     } catch (err) {
       this.error.set(apiError(err, 'Could not sign in. Try again.'));
     } finally {

@@ -3,6 +3,13 @@ import { authGuard, loginGuard, setupGuard } from './core/auth.guard';
 
 export const routes: Routes = [
   {
+    // Public marketing page; the guarded dashboard shell owns every other path.
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () => import('./pages/landing').then((m) => m.Landing),
+    title: 'Mochi · Privacy-first web analytics',
+  },
+  {
     path: 'login',
     canActivate: [loginGuard],
     loadComponent: () => import('./pages/login').then((m) => m.Login),
@@ -19,7 +26,6 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./shell').then((m) => m.Shell),
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'overview' },
       {
         path: 'overview',
         loadComponent: () => import('./pages/overview').then((m) => m.Overview),

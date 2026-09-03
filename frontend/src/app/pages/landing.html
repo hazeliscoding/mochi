@@ -1,0 +1,195 @@
+<div class="landing">
+  <header class="landing-header">
+    <a class="landing-brand" href="/" aria-label="Mochi home">
+      <svg width="24" height="24" viewBox="0 0 48 48" aria-hidden="true">
+        <path
+          d="M24 8.5 C 33.5 8.5, 41 15, 41.5 25 C 41.9 33.5, 35 40, 24 40 C 13 40, 6.1 33.5, 6.5 25 C 7 15, 14.5 8.5, 24 8.5 Z"
+          fill="#8FD0C9"
+          stroke="#4E9C94"
+          stroke-width="2.6"
+          stroke-linejoin="round"
+        />
+        <circle cx="18" cy="25.5" r="2.6" fill="#23423E" />
+        <circle cx="30" cy="25.5" r="2.6" fill="#23423E" />
+        <path
+          d="M21.6 29.5 Q 24 32, 26.4 29.5"
+          fill="none"
+          stroke="#23423E"
+          stroke-width="2.2"
+          stroke-linecap="round"
+        />
+        <circle cx="13.6" cy="29.2" r="2.4" fill="#F5A9B8" opacity="0.8" />
+        <circle cx="34.4" cy="29.2" r="2.4" fill="#F5A9B8" opacity="0.8" />
+      </svg>
+      <span class="landing-brand__name">Mochi</span>
+    </a>
+    <nav class="landing-nav" aria-label="Landing sections">
+      <a href="#features">Features</a>
+      <a href="#privacy">Privacy</a>
+      <a [href]="repo" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+    <span class="landing-spacer"></span>
+    <button
+      type="button"
+      class="tr-btn tr-btn--ghost tr-btn--icon"
+      [attr.aria-label]="theme.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+      [title]="theme.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+      (click)="theme.toggle()"
+    >
+      <mo-icon [name]="theme.theme() === 'dark' ? 'sun' : 'moon'" />
+    </button>
+    @if (authed()) {
+      <a class="tr-btn tr-btn--primary" routerLink="/overview">Open dashboard</a>
+    } @else {
+      <a class="tr-btn tr-btn--primary" routerLink="/login">Sign in</a>
+    }
+  </header>
+
+  <main class="landing-main">
+    <section class="hero">
+      <svg class="hero__mascot" width="96" height="96" viewBox="0 0 48 48" aria-hidden="true">
+        <path
+          d="M24 8.5 C 33.5 8.5, 41 15, 41.5 25 C 41.9 33.5, 35 40, 24 40 C 13 40, 6.1 33.5, 6.5 25 C 7 15, 14.5 8.5, 24 8.5 Z"
+          fill="#8FD0C9"
+          stroke="#4E9C94"
+          stroke-width="2.6"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M15 14.5 C 17.5 12.2, 21 11, 24 11"
+          fill="none"
+          stroke="#C9EAE6"
+          stroke-width="2.4"
+          stroke-linecap="round"
+        />
+        <circle cx="18" cy="25.5" r="2.1" fill="#23423E" />
+        <circle cx="30" cy="25.5" r="2.1" fill="#23423E" />
+        <path
+          d="M21.6 29.5 Q 24 31.8, 26.4 29.5"
+          fill="none"
+          stroke="#23423E"
+          stroke-width="1.8"
+          stroke-linecap="round"
+        />
+        <circle cx="13.6" cy="29.2" r="2.2" fill="#F5A9B8" opacity="0.8" />
+        <circle cx="34.4" cy="29.2" r="2.2" fill="#F5A9B8" opacity="0.8" />
+      </svg>
+      <h1>Mochi counts visits, not people.</h1>
+      <p class="hero__sub">
+        Privacy-first web analytics. Who visits, from where, on what device, and what they did,
+        without storing anything about anyone.
+      </p>
+      <div class="hero__ctas">
+        @if (authed()) {
+          <a class="tr-btn tr-btn--primary tr-btn--lg" routerLink="/overview">Open dashboard</a>
+        } @else {
+          <a class="tr-btn tr-btn--primary tr-btn--lg" routerLink="/login">Sign in</a>
+        }
+        <a class="tr-btn tr-btn--secondary tr-btn--lg" [href]="repo" target="_blank" rel="noopener"
+          >Self-host it</a
+        >
+      </div>
+      <div class="hero__shot">
+        <img
+          [src]="shot()"
+          width="2880"
+          height="1800"
+          alt="The Mochi overview dashboard: visitor trends, top pages and traffic sources"
+        />
+      </div>
+    </section>
+
+    <section id="features" class="landing-section">
+      <div class="landing-eyebrow">Features</div>
+      <h2>Everything you need</h2>
+      <p class="landing-lede">
+        One dashboard that answers who visits, from where, on what device, and what they did.
+      </p>
+      <div class="feature-grid">
+        @for (f of features; track f[1]) {
+          <div class="feature-card">
+            <span class="feature-card__icon"><mo-icon [name]="f[0]" [size]="18" /></span>
+            <h3>{{ f[1] }}</h3>
+            <p>{{ f[2] }}</p>
+          </div>
+        }
+      </div>
+    </section>
+
+    <section class="landing-section">
+      <div class="landing-eyebrow">How it works</div>
+      <h2>Three steps, no fine print</h2>
+      <div class="steps">
+        @for (s of steps; track s[0]; let i = $index) {
+          <div class="step">
+            <span class="step__num" aria-hidden="true">{{ i + 1 }}</span>
+            <h3>{{ s[0] }}</h3>
+            <p>{{ s[1] }}</p>
+          </div>
+        }
+      </div>
+    </section>
+
+    <section id="privacy" class="landing-section">
+      <div class="landing-eyebrow">Privacy</div>
+      <h2>How visitors stay anonymous</h2>
+      <div class="privacy-card">
+        <p>
+          Each visit is counted under a hash scoped to a single day: a random salt is mixed in at
+          ingestion and destroyed at the UTC day boundary, never stored. Once the salt is gone the
+          hash cannot be recomputed, so the same visitor on two different days can never be linked.
+          No per-visitor record exists to export, hand over, or leak.
+        </p>
+        <p>
+          That is why no consent banner is needed. No cookies, no fingerprinting, no cross-site
+          tracking, no individual profiles. Linking a person across two days is cryptographically
+          impossible, not just promised.
+        </p>
+      </div>
+    </section>
+
+    <section class="landing-section">
+      <div class="landing-eyebrow">Open source</div>
+      <h2>Self-host it in one command</h2>
+      <p class="landing-lede">
+        Mochi ships as a Docker image with the API, dashboard and Postgres wired together. Start it,
+        grab the one-time setup code from the logs, and claim your instance.
+      </p>
+      <pre class="code-block"><span class="code-block__prompt" aria-hidden="true">$ </span><code>docker compose up -d</code></pre>
+      <div class="selfhost-links">
+        <a class="tr-btn tr-btn--secondary" [href]="repo" target="_blank" rel="noopener"
+          >Source on GitHub</a
+        >
+        <a class="landing-link" [href]="release" target="_blank" rel="noopener">v1.0.0 release</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="landing-footer">
+    <svg width="30" height="30" viewBox="0 0 48 48" aria-hidden="true">
+      <path
+        d="M24 8.5 C 33.5 8.5, 41 15, 41.5 25 C 41.9 33.5, 35 40, 24 40 C 13 40, 6.1 33.5, 6.5 25 C 7 15, 14.5 8.5, 24 8.5 Z"
+        fill="#8FD0C9"
+        stroke="#4E9C94"
+        stroke-width="2.6"
+        stroke-linejoin="round"
+      />
+      <circle cx="18" cy="25.5" r="2.6" fill="#23423E" />
+      <circle cx="30" cy="25.5" r="2.6" fill="#23423E" />
+      <path
+        d="M21.6 29.5 Q 24 32, 26.4 29.5"
+        fill="none"
+        stroke="#23423E"
+        stroke-width="2.2"
+        stroke-linecap="round"
+      />
+      <circle cx="13.6" cy="29.2" r="2.4" fill="#F5A9B8" opacity="0.8" />
+      <circle cx="34.4" cy="29.2" r="2.4" fill="#F5A9B8" opacity="0.8" />
+    </svg>
+    <p>
+      <span class="landing-footer__strong">No cookies. No fingerprinting.</span>
+      Mochi counts visits, not people.
+    </p>
+    <a class="landing-link" [href]="repo" target="_blank" rel="noopener">Mochi on GitHub</a>
+  </footer>
+</div>
