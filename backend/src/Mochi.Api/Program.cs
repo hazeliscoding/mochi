@@ -88,6 +88,12 @@ if (app.Configuration.GetValue<bool>("Mochi:TrustProxyHeaders"))
     {
         ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
             | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto,
+        // Hops to walk back through X-Forwarded-For. Must equal the proxy
+        // chain length or RemoteIpAddress lands on a proxy, not the client.
+        // Railway appends two entries (client, edge), so it needs 2 there.
+        // Values prepended by a spoofing client are beyond the limit and
+        // ignored.
+        ForwardLimit = app.Configuration.GetValue("Mochi:ProxyForwardLimit", 1),
     };
     forwarded.KnownIPNetworks.Clear();
     forwarded.KnownProxies.Clear();
