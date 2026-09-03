@@ -128,16 +128,19 @@ hash (0001), the API contracts (0002), and the storage/rollup model (0003).
 - [x] Branding pass: logo/icon (SVG + PNG favicons + apple-touch-icon), SEO
       meta and OpenGraph tags, light + dark screenshot grid incl. the Privacy
       Center, full README in the house style (`npm run shots` regenerates)
-- [ ] Versioned releases with migration path for the database (tag + GitHub
-      release once the live instance is up)
+- [x] Versioned release: v1.0.0 tag + GitHub release (migrations apply on
+      startup, so upgrade = pull new image + restart)
 - [x] Live deployment on Railway: Dockerfile build, managed Postgres over the
       private network, HTTPS at mochi-production-94fe.up.railway.app,
       forwarded headers honored (real visitor IPs and Secure cookies)
 - [ ] Dogfooding: install the snippet on hazeliscoding.dev / rozeangel.moe
       (after admin setup and the rate-limiting hardening below)
-- [ ] Public-exposure prerequisites from the ADR open questions: collect
-      rate limiting / Origin validation (ADR 0002), login rate limiting
-      (ADR 0004), production `SnippetBaseUrl`, GeoLite2 database configured
+- [x] Public-exposure hardening: per-IP rate limiting on login/setup (10/min)
+      and collect (120/min), correct client IPs behind Railway's two-hop
+      proxy, production `SnippetBaseUrl` set. Origin validation deliberately
+      unenforced (breaks localhost snippet verification; ADR 0002 stays open)
+- [ ] GeoLite2 database on the live instance (needs a MaxMind account; until
+      then Geography stays empty)
 
 ---
 
