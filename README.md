@@ -2,6 +2,8 @@
 
 <h1 align="center">Mochi</h1>
 
+<p align="center"><strong><a href="https://mochi-production-94fe.up.railway.app">mochi-production-94fe.up.railway.app</a></strong></p>
+
 Privacy-first web analytics that counts visits, not people. One dashboard that answers:
 **who visits, from where, on what device, and what they did — without storing anything
 about anyone.**

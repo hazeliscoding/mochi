@@ -130,8 +130,11 @@ hash (0001), the API contracts (0002), and the storage/rollup model (0003).
       Center, full README in the house style (`npm run shots` regenerates)
 - [ ] Versioned releases with migration path for the database (tag + GitHub
       release once the live instance is up)
-- [ ] Live deployment (Railway or similar: Dockerfile build, managed Postgres,
-      HTTPS): Mochi dogfooding itself on hazeliscoding.dev / rozeangel.moe
+- [x] Live deployment on Railway: Dockerfile build, managed Postgres over the
+      private network, HTTPS at mochi-production-94fe.up.railway.app,
+      forwarded headers honored (real visitor IPs and Secure cookies)
+- [ ] Dogfooding: install the snippet on hazeliscoding.dev / rozeangel.moe
+      (after admin setup and the rate-limiting hardening below)
 - [ ] Public-exposure prerequisites from the ADR open questions: collect
       rate limiting / Origin validation (ADR 0002), login rate limiting
       (ADR 0004), production `SnippetBaseUrl`, GeoLite2 database configured
