@@ -19,6 +19,32 @@ using Mochi.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMochi(builder.Configuration);
+
+// Per-IP fixed windows (ADR 0002/0004 open questions, resolved for v1.0).
+// The IP is used only as an in-memory partition key, consistent with how
+// ingest already treats it: transient, never persisted. Limits are config
+// overridable; tests use tight ones.
+var authLimit = builder.Configuration.GetValue("Mochi:RateLimits:AuthPerMinute", 10);
+var collectLimit = builder.Configuration.GetValue("Mochi:RateLimits:CollectPerMinute", 120);
+builder.Services.AddRateLimiter(o =>
+{
+    o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    o.AddPolicy("auth", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+        {
+            PermitLimit = authLimit,
+            Window = TimeSpan.FromMinutes(1),
+        }));
+    o.AddPolicy("collect", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+        {
+            PermitLimit = collectLimit,
+            Window = TimeSpan.FromMinutes(1),
+        }));
+});
+
 var app = builder.Build();
 
 // Migrate on startup. Retries because the database container may still be
@@ -67,6 +93,8 @@ if (app.Configuration.GetValue<bool>("Mochi:TrustProxyHeaders"))
     forwarded.KnownProxies.Clear();
     app.UseForwardedHeaders(forwarded);
 }
+
+app.UseRateLimiter();
 
 var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
@@ -118,7 +146,7 @@ app.MapPost("/api/collect", async (HttpContext http, CollectHandler handler, ILo
     if (!result.Stored) log.LogInformation("collect drop: {Reason}", result.DropReason);
 
     return Results.Accepted();
-});
+}).RequireRateLimiting("collect");
 
 // Site management. All endpoints below run behind the session middleware;
 // membership decides which sites a user can even see (ADR 0004: anonymous

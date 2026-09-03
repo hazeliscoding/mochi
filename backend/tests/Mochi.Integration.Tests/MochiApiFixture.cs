@@ -13,7 +13,7 @@ namespace Mochi.Integration.Tests;
 /// The app applies migrations on startup, so the schema is real. The fixture
 /// runs first-run setup and exposes an authenticated admin client.
 /// </summary>
-public sealed class MochiApiFixture : IAsyncLifetime
+public class MochiApiFixture : IAsyncLifetime
 {
     /// <summary>Setup code injected via configuration.</summary>
     public const string SetupCode = "test-setup-code";
@@ -30,6 +30,9 @@ public sealed class MochiApiFixture : IAsyncLifetime
 
     public string ConnectionString => _postgres.GetConnectionString();
 
+    /// <summary>Additional configuration for derived fixtures (e.g. tight rate limits).</summary>
+    protected virtual IReadOnlyDictionary<string, string> ExtraSettings { get; } = new Dictionary<string, string>();
+
     /// <summary>Cookie-carrying client, already authenticated as the admin.</summary>
     public HttpClient Client { get; private set; } = null!;
 
@@ -43,6 +46,7 @@ public sealed class MochiApiFixture : IAsyncLifetime
             // AddMochi requires to pick the Postgres adapters.
             b.UseSetting("ConnectionStrings:Mochi", _postgres.GetConnectionString());
             b.UseSetting("MOCHI_SETUP_CODE", SetupCode);
+            foreach (var (key, value) in ExtraSettings) b.UseSetting(key, value);
         });
 
         Client = CreateAnonymousClient();

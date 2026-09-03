@@ -40,7 +40,7 @@ public static class AuthEndpoints
             if (result.Token is null) return Results.BadRequest(new { error = result.Error });
             SessionAuthMiddleware.IssueSessionCookie(ctx, result.Token);
             return Results.Ok();
-        });
+        }).RequireRateLimiting("auth");
 
         auth.MapPost("/login", async (LoginRequest req, HttpContext ctx, AuthService svc, CancellationToken ct) =>
         {
@@ -48,7 +48,7 @@ public static class AuthEndpoints
             if (result.Token is null) return Results.Json(new { error = result.Error }, statusCode: StatusCodes.Status401Unauthorized);
             SessionAuthMiddleware.IssueSessionCookie(ctx, result.Token);
             return Results.Ok();
-        });
+        }).RequireRateLimiting("auth");
 
         auth.MapPost("/logout", async (HttpContext ctx, AuthService svc, CancellationToken ct) =>
         {
