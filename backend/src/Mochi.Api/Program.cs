@@ -52,6 +52,22 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+// Behind a TLS-terminating proxy (Railway, fly.io, nginx) the real client IP
+// and scheme arrive in forwarded headers. Without this every visitor would
+// share the proxy's IP, collapsing visitor hashes, and cookies would never be
+// Secure. Opt-in because trusting these headers off-proxy allows spoofing.
+if (app.Configuration.GetValue<bool>("Mochi:TrustProxyHeaders"))
+{
+    var forwarded = new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
+            | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto,
+    };
+    forwarded.KnownIPNetworks.Clear();
+    forwarded.KnownProxies.Clear();
+    app.UseForwardedHeaders(forwarded);
+}
+
 var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
 // Serves wwwroot/script.js, the embeddable tracking snippet. Cross-origin by
