@@ -49,17 +49,17 @@ export class Landing {
       'Realtime',
       'Active visits in the last 5 minutes with a per-minute pageview chart.',
     ],
-    ['compass', 'Traffic sources', 'Channels, referrers and campaigns, plus geography and devices.'],
+    [
+      'compass',
+      'Traffic sources',
+      'Channels, referrers and campaigns, plus geography and devices.',
+    ],
     [
       'target',
       'Goals',
       'Conversions computed at query time. A goal created today shows its full history.',
     ],
-    [
-      'mouse-pointer-click',
-      'Custom events',
-      "mochi('event', 'signup') with per-page breakdowns.",
-    ],
+    ['mouse-pointer-click', 'Custom events', "mochi('event', 'signup') with per-page breakdowns."],
     [
       'layers',
       'A 1.9 KB snippet',
